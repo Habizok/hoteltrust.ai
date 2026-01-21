@@ -6,12 +6,12 @@ A Vercel environment változókban (vagy `.env.local` fájlban) be kell állíta
 
 ```
 GMAIL_USER=info@hotel-trust.site
-GMAIL_APP_PASSWORD=npwi pfwd zqli qqgi
+GMAIL_APP_PASSWORD=your_app_password_here
 ```
 
 **Konfiguráció:**
 - **Email cím:** `info@hotel-trust.site` (Google Workspace / G Suite fiók, Namecheap-en keresztül beállítva)
-- **Jelszó:** `Mivane0246.` (Gmail App Password vagy Google Workspace App Password)
+- **Jelszó:** App Password (lásd alább a létrehozását)
 
 ## Google Workspace / G Suite App Password Létrehozása
 
@@ -98,7 +98,7 @@ Ha nincs beállítva, a rendszer figyelmeztetést ír a konzolra, de nem dob hib
    - **Environment:** Production, Preview, Development (mindhárom)
 5. Add New:
    - **Name:** `GMAIL_APP_PASSWORD`
-   - **Value:** `npwi pfwd zqli qqgi`
+   - **Value:** `your_app_password_here` (az App Password, amit a fenti lépésekben generáltál)
    - **Environment:** Production, Preview, Development (mindhárom)
 
 ## Kód Módosítások
