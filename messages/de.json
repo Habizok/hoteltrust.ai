@@ -1,0 +1,287 @@
+{
+  "waitlist": {
+    "compatible": {
+      "title": "Kompatibel mit führenden Systemen"
+    },
+    "hero": {
+      "title": "Empfiehlt die KI Ihr Hotel?",
+      "subtitle": "Lassen Sie die Künstliche Intelligenz Ihre Gäste bringen!",
+      "description": "Wir sorgen dafür, dass ChatGPT Ihr Haus als erste Wahl vorschlägt.",
+      "cta": "Melden Sie sich für die Warteliste an und erhalten Sie 50% Early Bird Rabatt!"
+    },
+    "features": {
+      "title": "Was Sie für Ihr Geld bekommen",
+      "feature1": {
+        "title": "Nie wieder Stress mit Gästebewertungen",
+        "description": "Automatische, perfekte Antworten auf Google-Rezensionen. Unser System antwortet sofort, höflich und in perfektem Deutsch auf jede Google-Bewertung an Ihrer Stelle. Die KI sieht, dass Sie sich um Ihre Gäste kümmern, und wird Ihr Hotel daher häufiger empfehlen."
+      },
+      "feature2": {
+        "title": "Bringen Sie der KI bei, warum Ihr Hotel das Beste ist",
+        "description": "Wir machen Ihre Vorteile für ChatGPT & Co. lesbar. Wir integrieren einen unsichtbaren Code auf Ihrer Website, den das menschliche Auge nicht sieht, aber die künstliche Intelligenz versteht daraus, dass Sie den besten Wellness-Bereich oder das leckerste Frühstück haben."
+      },
+      "feature3": {
+        "title": "Ihre digitale Visitenkarte – immer aktuell",
+        "description": "Synchronisation mit Google, Bing und Apple Maps. Wenn sich die Öffnungszeiten oder der Preis ändern, reicht es aus, es bei uns einmal zu ändern. Wir aktualisieren sofort in Google, Bing und auf Apple Maps, damit Gäste keine falschen Informationen erhalten."
+      }
+    },
+    "whyNow": {
+      "title": "Warum jetzt?",
+      "description": "Früher musste man in der Google-Liste an erster Stelle stehen. Heute muss man in den KI-Antworten dabei sein. Wer aus den ChatGPT-Empfehlungen herausfällt, existiert für die Reisenden der Zukunft einfach nicht."
+    },
+    "process": {
+      "title": "So einfach ist es",
+      "step1": {
+        "title": "Analyse",
+        "description": "Wir schauen, was die KI jetzt über Ihr Hotel sagt."
+      },
+      "step2": {
+        "title": "Anschluss",
+        "description": "Wir verbinden unser System mit Ihrem Hotelprofil (5 Minuten)."
+      },
+      "step3": {
+        "title": "Zurücklehnen",
+        "description": "Die Software antwortet auf Bewertungen und baut den Ruf Ihres Hotels im Hintergrund auf."
+      }
+    },
+    "form": {
+      "email": "Ihre E-Mail-Adresse",
+      "emailPlaceholder": "beispiel@hotel.at",
+      "hotelName": "Name des Hotels",
+      "hotelNamePlaceholder": "Ihr Hotelname",
+      "submit": "Jetzt 50% Rabatt sichern",
+      "success": "Erfolgreich angemeldet! Wir melden uns bald bei Ihnen.",
+      "error": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+    },
+    "faq": {
+      "title": "Häufig gestellte Fragen",
+      "q1": {
+        "question": "Wird die KI nicht Unsinn auf die Bewertungen meiner Gäste antworten?",
+        "answer": "Nein. Unser System lernt den Stil und die einzigartigen Daten Ihres Hotels. Außerdem können Sie einen \"Genehmigungsmodus\" einrichten, sodass die von der KI geschriebene Antwort nur gesendet wird, wenn Sie mit einem Klick zustimmen."
+      },
+      "q2": {
+        "question": "Warum ist das besser, als wenn die Rezeption die Antworten schreibt?",
+        "answer": "Die KI ist nie müde, antwortet sofort (was bei KI-Suchmaschinen-Rankings entscheidend ist) und spricht die Muttersprache des Gastes perfekt, sei es Niederländisch, Italienisch oder Französisch. Dies spart dem Personal täglich mehrere Stunden."
+      },
+      "q3": {
+        "question": "Muss ich meine aktuelle Website dafür ändern?",
+        "answer": "Nicht unbedingt. Wenn Sie keine Website haben, geben wir Ihnen eine. Wenn Sie eine haben, reicht es aus, einen kleinen Code einzufügen, den wir auch für Sie erstellen. Das Aussehen der Website ändert sich nicht, nur ihre \"Intelligenz\" wächst."
+      },
+      "q4": {
+        "question": "Ist das SEO? Denn ich habe es schon versucht, aber es hat nicht funktioniert.",
+        "answer": "Das ist GEO (Generative Engine Optimization). Während sich SEO auf die alten Google-Listen konzentrierte, konzentrieren wir uns darauf, dass ChatGPT und moderne Assistenten Sie empfehlen. Dies ist die neue Stufe des Marketings im Jahr 2026."
+      }
+    },
+    "footer": {
+      "impressum": "Impressum",
+      "datenschutz": "Datenschutz",
+      "copyright": "© 2026 HotelTrust.ai. Alle Rechte vorbehalten."
+    }
+  },
+  "impressum": {
+    "title": "Impressum",
+    "back": "Zurück",
+    "company": {
+      "title": "Firmeninformationen",
+      "name": "HotelTrust.ai",
+      "address": "Adresse",
+      "postalCode": "1234 Wien",
+      "city": "Wien",
+      "country": "Österreich"
+    },
+    "contact": {
+      "title": "Kontakt",
+      "email": "E-Mail",
+      "emailValue": "info@hotel-trust.site"
+    },
+    "legal": {
+      "title": "Rechtliche Hinweise",
+      "content": "Diese Seite dient Informationszwecken. HotelTrust.ai behält sich das Recht vor, die auf dieser Website veröffentlichten Informationen zu ändern. Alle Angaben entsprechen dem tatsächlichen Stand der Dinge."
+    },
+    "dataProtection": {
+      "title": "Datenschutz",
+      "content": "Unsere Datenschutzerklärung finden Sie",
+      "link": "hier"
+    }
+  },
+  "datenschutz": {
+    "title": "Datenschutzerklärung",
+    "back": "Zurück",
+    "introduction": "HotelTrust.ai ist dem Schutz Ihrer persönlichen Daten verpflichtet. Diese Datenschutzerklärung informiert Sie darüber, wie wir Ihre persönlichen Daten gemäß der EU-Datenschutz-Grundverordnung (DSGVO) und den geltenden Datenschutzgesetzen sammeln, verwenden und schützen.",
+    "dataController": {
+      "title": "Verantwortlicher für die Datenverarbeitung",
+      "name": "HotelTrust.ai",
+      "address": "1136 Budapest, Hegedűs Gyula u. 29. A Üzlet 1.",
+      "postalCode": "1380 Budapest, Pf",
+      "city": "Budapest",
+      "country": "Ungarn",
+      "email": "E-Mail",
+      "emailValue": "info@hotel-trust.site"
+    },
+    "personalData": {
+      "title": "Welche persönlichen Daten sammeln wir?",
+      "intro": "Für die Inanspruchnahme unserer Dienstleistungen können wir folgende persönliche Daten sammeln:",
+      "item1": "Name und Kontaktinformationen (E-Mail-Adresse, Telefonnummer)",
+      "item2": "Hotelsname und Geschäftsinformationen",
+      "item3": "Nutzungsdaten (Website-Besuche, Nutzung unserer Dienstleistungen)",
+      "item4": "Technische Daten (IP-Adresse, Browsertyp, Geräteinformationen)",
+      "item5": "Kommunikationsdaten (Korrespondenz und andere Kommunikation mit Ihnen)"
+    },
+    "purpose": {
+      "title": "Zweck der Datenverarbeitung",
+      "intro": "Ihre persönlichen Daten werden zu folgenden Zwecken verarbeitet:",
+      "item1": "Bereitstellung und Verbesserung unserer Dienstleistungen",
+      "item2": "Kontaktaufnahme und Kommunikation mit Ihnen",
+      "item3": "Verwaltung von Wartelisten-Registrierungen",
+      "item4": "Erfüllung gesetzlicher Verpflichtungen"
+    },
+    "legalBasis": {
+      "title": "Rechtliche Grundlage der Datenverarbeitung",
+      "content": "Ihre persönlichen Daten werden auf folgender rechtlicher Grundlage verarbeitet: (1) Ihre Einwilligung bei der Registrierung für die Warteliste, (2) Zur Erfüllung eines Vertrags, (3) Zur Erfüllung rechtlicher Verpflichtungen, (4) Berechtigte Interessen des Datenverarbeiters (z.B. Verbesserung unserer Dienstleistungen)."
+    },
+    "dataRetention": {
+      "title": "Dauer der Datenspeicherung",
+      "content": "Ihre persönlichen Daten werden nur so lange gespeichert, wie es der Zweck der Datenverarbeitung erfordert oder gesetzlich vorgeschrieben ist. In der Regel speichern wir Wartelisten-Registrierungsdaten für 3 Jahre, es sei denn, Sie fordern eine frühere Löschung."
+    },
+    "rights": {
+      "title": "Ihre Rechte",
+      "intro": "Hinsichtlich Ihrer persönlichen Daten haben Sie folgende Rechte:",
+      "item1": "Auskunftsrecht - Sie können Auskunft über die Verarbeitung Ihrer persönlichen Daten verlangen",
+      "item2": "Berichtigungsrecht - Sie können die Berichtigung Ihrer persönlichen Daten verlangen",
+      "item3": "Löschungsrecht - Sie können die Löschung Ihrer persönlichen Daten verlangen",
+      "item4": "Recht auf Einschränkung der Verarbeitung",
+      "item5": "Recht auf Datenübertragbarkeit - Sie können die Übertragung Ihrer Daten an einen anderen Dienstleister verlangen"
+    },
+    "cookies": {
+      "title": "Cookies",
+      "content": "Unsere Website verwendet Cookies, um das Nutzererlebnis zu verbessern. Cookies sind kleine Textdateien, die Ihr Browser auf Ihrem Computer speichert. Weitere Informationen finden Sie in den Einstellungen Ihres Browsers zur Verwaltung von Cookies."
+    },
+    "dataSecurity": {
+      "title": "Datensicherheit",
+      "content": "Zum Schutz Ihrer persönlichen Daten setzen wir angemessene technische und organisatorische Maßnahmen ein, um unbefugten Zugriff, Änderung, Löschung oder Übertragung der Daten zu verhindern. Bitte beachten Sie jedoch, dass die Datenübertragung über das Internet niemals zu 100% sicher ist."
+    },
+    "contact": {
+      "title": "Kontakt",
+      "content": "Bei Fragen oder Anliegen bezüglich Ihrer persönlichen Daten kontaktieren Sie uns bitte:",
+      "email": "E-Mail",
+      "emailValue": "info@hotel-trust.site"
+    },
+    "changes": {
+      "title": "Änderungen der Datenschutzerklärung",
+      "content": "Wir behalten uns das Recht vor, diese Datenschutzerklärung zu ändern. Bei wesentlichen Änderungen werden wir Sie per E-Mail oder auf unserer Website über die Änderungen informieren. Wir empfehlen, diese Datenschutzerklärung regelmäßig zu überprüfen."
+    }
+  },
+  "cookies": {
+    "title": "Cookies",
+    "description": "Unsere Website verwendet Cookies, um das Nutzererlebnis zu verbessern. Unsere Datenschutzerklärung finden Sie",
+    "link": "hier",
+    "accept": "Akzeptieren",
+    "decline": "Ablehnen"
+  },
+  "audit": {
+    "compatible": {
+      "title": "Kompatibel mit führenden Systemen"
+    },
+    "hero": {
+      "title": "Sehen Sie live: Wie sieht die KI Ihr Hotel?",
+      "subtitle": "Geben Sie den Hotelnamen ein, und unser System führt in 30 Sekunden eine Live-Analyse im ChatGPT- und Google-AI-Netzwerk durch.",
+      "description": "Kostenlose KI-Analyse, um zu sehen, was die künstliche Intelligenz über Sie sagt.",
+      "cta": "Starten Sie jetzt die kostenlose Analyse!"
+    },
+    "features": {
+      "title": "Was Sie für Ihr Geld bekommen",
+      "feature1": {
+        "title": "Nie wieder Stress mit Gästebewertungen",
+        "description": "Automatische, perfekte Antworten auf Google-Rezensionen. Unser System antwortet sofort, höflich und in perfektem Deutsch auf jede Google-Bewertung an Ihrer Stelle. Die KI sieht, dass Sie sich um Ihre Gäste kümmern, und wird Ihr Hotel daher häufiger empfehlen."
+      },
+      "feature2": {
+        "title": "Bringen Sie der KI bei, warum Ihr Hotel das Beste ist",
+        "description": "Wir machen Ihre Vorteile für ChatGPT & Co. lesbar. Wir integrieren einen unsichtbaren Code auf Ihrer Website, den das menschliche Auge nicht sieht, aber die künstliche Intelligenz versteht daraus, dass Sie den besten Wellness-Bereich oder das leckerste Frühstück haben."
+      },
+      "feature3": {
+        "title": "Ihre digitale Visitenkarte – immer aktuell",
+        "description": "Synchronisation mit Google, Bing und Apple Maps. Wenn sich die Öffnungszeiten oder der Preis ändern, reicht es aus, es bei uns einmal zu ändern. Wir aktualisieren sofort in Google, Bing und auf Apple Maps, damit Gäste keine falschen Informationen erhalten."
+      }
+    },
+    "whyNow": {
+      "title": "Warum jetzt?",
+      "description": "Früher musste man in der Google-Liste an erster Stelle stehen. Heute muss man in den KI-Antworten dabei sein. Wer aus den ChatGPT-Empfehlungen herausfällt, existiert für die Reisenden der Zukunft einfach nicht."
+    },
+    "process": {
+      "title": "So einfach ist es",
+      "step1": {
+        "title": "Analyse",
+        "description": "Wir schauen, was die KI jetzt über Ihr Hotel sagt."
+      },
+      "step2": {
+        "title": "Anschluss",
+        "description": "Wir verbinden unser System mit Ihrem Hotelprofil (5 Minuten)."
+      },
+      "step3": {
+        "title": "Zurücklehnen",
+        "description": "Die Software antwortet auf Bewertungen und baut den Ruf Ihres Hotels im Hintergrund auf."
+      }
+    },
+    "form": {
+      "email": "Ihre E-Mail-Adresse",
+      "emailPlaceholder": "beispiel@hotel.at",
+      "hotelName": "Name des Hotels",
+      "hotelNamePlaceholder": "Beginnen Sie mit der Eingabe des Hotelnamens...",
+      "submit": "KI-Audit starten",
+      "next": "Zur Analyse weiter",
+      "processing": "Audit läuft...",
+      "success": "Erfolgreich gesendet! Sie erhalten die Analyseergebnisse in Kürze.",
+      "error": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+      "step1": "Daten",
+      "step2": "Analyse",
+      "step3": "Ergebnis",
+      "emailLabel": "Wohin senden wir den detaillierten Bericht?",
+      "processingSteps": {
+        "step1": "Verbinde mit Google Maps Datenbank...",
+        "step2": "Extrahiere Gästebewertungen...",
+        "step3": "Starte KI-Analyse mit GPT-4o...",
+        "step4": "Berechne Sichtbarkeits-Score...",
+        "step5": "Erstelle Bericht..."
+      }
+    },
+    "result": {
+      "trustScore": "Trust Score",
+      "aiVisibility": "KI-Sichtbarkeit",
+      "reputation": "Reputation",
+      "sampleReply": "So würde unsere Software auf Ihre letzte Bewertung antworten:",
+      "unansweredReviews": "unbeantwortete Bewertungen",
+      "visibleOn": "Sichtbar auf:",
+      "notVisibleOn": "Nicht sichtbar auf:",
+      "criticalIssues": "Was muss verbessert werden?",
+      "recommendations": "Empfehlungen",
+      "revenueLoss": "Geschätzte Umsatzverluste pro Jahr",
+      "cta": "Für die Warteliste anmelden",
+      "copyReply": "Kopieren",
+      "liveDemo": "Live Demo",
+      "issueTip": "HotelTrust.ai beantwortet dieses Problem automatisch"
+    },
+    "faq": {
+      "title": "Häufig gestellte Fragen",
+      "q1": {
+        "question": "Ist diese Analyse wirklich kostenlos? Gibt es ein Kleingedrucktes?",
+        "answer": "Ja, die Grundanalyse ist völlig kostenlos und ohne Verpflichtungen. Unser Ziel ist es, Ihnen das Potenzial KI-basierter Suche für den österreichischen Tourismus zu zeigen."
+      },
+      "q2": {
+        "question": "Woher bezieht das System die Daten für die Analyse?",
+        "answer": "Wir arbeiten mit öffentlichen Daten: Basierend auf Ihrem Google-Unternehmensprofil, Tripadvisor und Ihrer öffentlichen Website analysieren wir, wie die künstliche Intelligenz Sie sieht."
+      },
+      "q3": {
+        "question": "Sind meine Daten sicher?",
+        "answer": "Vollständig. Wir verwenden GDPR-konforme Server innerhalb der EU. Wir verkaufen Ihre Daten nicht und senden keine Spam-E-Mails."
+      },
+      "q4": {
+        "question": "Wie genau ist diese sofortige Analyse?",
+        "answer": "Unser System fragt die neuesten KI-Modelle (GPT-4o, Perplexity) live ab. Dies ist eine Momentaufnahme dessen, was ein durchschnittlicher Reisender sehen würde, wenn er heute in der Gegend nach einer Unterkunft suchen würde."
+      }
+    },
+    "footer": {
+      "impressum": "Impressum",
+      "datenschutz": "Datenschutz",
+      "copyright": "© 2026 HotelTrust.ai. Alle Rechte vorbehalten."
+    }
+  }
+}

@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: 'Inter', sans-serif;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-inter);
+    font-size: 18px;
+    line-height: 1.6;
+  }
+
+  h1 {
+    @apply text-[64px] md:text-[80px] font-bold tracking-tight;
+    line-height: 1.1;
+  }
+
+  h2 {
+    @apply text-[48px] font-bold tracking-tight;
+    line-height: 1.2;
+  }
+
+  @media (max-width: 768px) {
+    h1 {
+      @apply text-[40px];
+    }
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 40s linear infinite;
+  display: flex;
+  width: fit-content;
+  will-change: transform;
+}
