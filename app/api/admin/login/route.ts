@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-
-const ADMIN_EMAIL = 'info@hotel-trust.site';
-const ADMIN_PASSWORD = 'HotelTrust2026!';
+import { ADMIN_SESSION_COOKIE, ADMIN_SESSION_MAX_AGE_SECONDS, createAdminSessionToken } from '@/lib/adminSession';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,17 +14,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      // Create session token (simple implementation)
-      const sessionToken = Buffer.from(`${email}:${Date.now()}`).toString('base64');
-      
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminEmail || !adminPassword) {
+      console.error('ADMIN_EMAIL or ADMIN_PASSWORD environment variable is not set');
+      return NextResponse.json(
+        { error: 'Szerver konfigurációs hiba' },
+        { status: 500 }
+      );
+    }
+
+    if (email === adminEmail && password === adminPassword) {
+      const sessionToken = await createAdminSessionToken(email);
+
       // Set cookie
       const cookieStore = await cookies();
-      cookieStore.set('admin_session', sessionToken, {
+      cookieStore.set(ADMIN_SESSION_COOKIE, sessionToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
+        maxAge: ADMIN_SESSION_MAX_AGE_SECONDS,
       });
 
       return NextResponse.json(
@@ -51,8 +59,8 @@ export async function POST(request: NextRequest) {
 export async function DELETE() {
   try {
     const cookieStore = await cookies();
-    cookieStore.delete('admin_session');
-    
+    cookieStore.delete(ADMIN_SESSION_COOKIE);
+
     return NextResponse.json(
       { success: true, message: 'Sikeres kijelentkezés' },
       { status: 200 }
