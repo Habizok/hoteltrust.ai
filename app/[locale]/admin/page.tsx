@@ -57,7 +57,7 @@ export default function AdminLoginPage() {
               <Lock className="w-8 h-8 text-primary" />
             </div>
             <h1 className="text-3xl font-bold text-foreground mb-2">Admin Bejelentkezés</h1>
-            <p className="text-foreground/60">HotelTrust.ai Admin Dashboard</p>
+            <p className="text-foreground/60">Trusthotel Admin Dashboard</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -119,18 +119,6 @@ export default function AdminLoginPage() {
               )}
             </button>
           </form>
-
-          <div className="mt-6 pt-6 border-t border-border">
-            <p className="text-xs text-foreground/60 text-center">
-              Belépési adatok:
-            </p>
-            <p className="text-xs text-foreground/80 text-center mt-2 font-mono">
-              Email: info@hotel-trust.site
-            </p>
-            <p className="text-xs text-foreground/80 text-center mt-1 font-mono">
-              Jelszó: HotelTrust2026!
-            </p>
-          </div>
         </div>
       </motion.div>
     </div>

@@ -4,32 +4,32 @@
       "title": "Kompatibel mit führenden Systemen"
     },
     "hero": {
-      "title": "Empfiehlt die KI Ihr Hotel?",
-      "subtitle": "Lassen Sie die Künstliche Intelligenz Ihre Gäste bringen!",
-      "description": "Wir sorgen dafür, dass ChatGPT Ihr Haus als erste Wahl vorschlägt.",
-      "cta": "Melden Sie sich für die Warteliste an und erhalten Sie 50% Early Bird Rabatt!"
+      "title": "Empfiehlt die KI Ihr Hotel – oder das der Konkurrenz?",
+      "subtitle": "Neue Gäste suchen nicht mehr bei Google.",
+      "description": "Sie fragen ChatGPT, Google AI und digitale Assistenten.\n\nWir sorgen dafür, dass wenn ein Gast mit künstlicher Intelligenz nach einer Unterkunft sucht, Ihr Hotel als Empfehlung erscheint – nicht das des Nachbarn.",
+      "cta": "🔒 Meinen Platz auf der Warteliste sichern – 50% Early Bird Rabatt"
     },
     "features": {
-      "title": "Was Sie für Ihr Geld bekommen",
+      "title": "Konkrete Probleme, konkrete Lösungen",
       "feature1": {
-        "title": "Nie wieder Stress mit Gästebewertungen",
-        "description": "Automatische, perfekte Antworten auf Google-Rezensionen. Unser System antwortet sofort, höflich und in perfektem Deutsch auf jede Google-Bewertung an Ihrer Stelle. Die KI sieht, dass Sie sich um Ihre Gäste kümmern, und wird Ihr Hotel daher häufiger empfehlen."
+        "title": "Die KI beobachtet, wie Sie mit Ihren Gästen umgehen",
+        "description": "Trusthotel antwortet automatisch, höflich und fehlerfrei auf jede Google-Bewertung.\n\n👉 KI-basierte Suchmaschinen bevorzugen Hotels, die sich sichtbar um ihre Gäste kümmern.\n\nErgebnis: bessere Empfehlungen, mehr Buchungen, weniger Verwaltung."
       },
       "feature2": {
-        "title": "Bringen Sie der KI bei, warum Ihr Hotel das Beste ist",
-        "description": "Wir machen Ihre Vorteile für ChatGPT & Co. lesbar. Wir integrieren einen unsichtbaren Code auf Ihrer Website, den das menschliche Auge nicht sieht, aber die künstliche Intelligenz versteht daraus, dass Sie den besten Wellness-Bereich oder das leckerste Frühstück haben."
+        "title": "Sagen Sie der KI, worin Sie besser sind als die anderen",
+        "description": "Wir bauen strukturierte, KI-interpretierbare Daten in Ihre Website ein, aus denen ChatGPT und Google AI genau verstehen:\n– worin Ihr Hotel stark ist\n– für wen es ideal ist\n– warum Sie empfohlen werden sollten\n\nDer Mensch sieht nichts davon.\nDie KI schon."
       },
       "feature3": {
-        "title": "Ihre digitale Visitenkarte – immer aktuell",
-        "description": "Synchronisation mit Google, Bing und Apple Maps. Wenn sich die Öffnungszeiten oder der Preis ändern, reicht es aus, es bei uns einmal zu ändern. Wir aktualisieren sofort in Google, Bing und auf Apple Maps, damit Gäste keine falschen Informationen erhalten."
+        "title": "Verlieren Sie nie wieder Gäste wegen falscher Informationen",
+        "description": "Wenn sich Preis, Öffnungszeiten oder Kontakt ändern, reicht es aus, es einmal bei uns zu aktualisieren.\n\nWir synchronisieren:\n– Google\n– Bing\n– Apple Maps\n\n👉 Die KI empfiehlt nur, wenn sie konsistente Daten sieht."
       }
     },
     "whyNow": {
       "title": "Warum jetzt?",
-      "description": "Früher musste man in der Google-Liste an erster Stelle stehen. Heute muss man in den KI-Antworten dabei sein. Wer aus den ChatGPT-Empfehlungen herausfällt, existiert für die Reisenden der Zukunft einfach nicht."
+      "description": "Früher zählte die erste Seite von Google.\nHeute zählt es, ob Sie in der KI-Antwort sind.\n\nDie meisten Hotels haben sich darauf noch nicht optimiert.\nDas ist jetzt ein Wettbewerbsvorteil. Nicht mehr lange."
     },
     "process": {
-      "title": "So einfach ist es",
+      "title": "Wie funktioniert es?",
       "step1": {
         "title": "Analyse",
         "description": "Wir schauen, was die KI jetzt über Ihr Hotel sagt."
@@ -39,8 +39,8 @@
         "description": "Wir verbinden unser System mit Ihrem Hotelprofil (5 Minuten)."
       },
       "step3": {
-        "title": "Zurücklehnen",
-        "description": "Die Software antwortet auf Bewertungen und baut den Ruf Ihres Hotels im Hintergrund auf."
+        "title": "Automatischer Betrieb",
+        "description": "Das System verwaltet Ihre KI-Sichtbarkeit 0–24, während Sie sich auf Gäste und Umsatz konzentrieren."
       }
     },
     "form": {
@@ -48,7 +48,7 @@
       "emailPlaceholder": "beispiel@hotel.at",
       "hotelName": "Name des Hotels",
       "hotelNamePlaceholder": "Ihr Hotelname",
-      "submit": "Jetzt 50% Rabatt sichern",
+      "submit": "🎁 Early Bird Platz reservieren – 50% Rabatt",
       "success": "Erfolgreich angemeldet! Wir melden uns bald bei Ihnen.",
       "error": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
     },
@@ -74,7 +74,7 @@
     "footer": {
       "impressum": "Impressum",
       "datenschutz": "Datenschutz",
-      "copyright": "© 2026 HotelTrust.ai. Alle Rechte vorbehalten."
+      "copyright": "© 2026 Trusthotel. Alle Rechte vorbehalten."
     }
   },
   "impressum": {
@@ -82,7 +82,7 @@
     "back": "Zurück",
     "company": {
       "title": "Firmeninformationen",
-      "name": "HotelTrust.ai",
+      "name": "Trusthotel",
       "address": "Adresse",
       "postalCode": "1234 Wien",
       "city": "Wien",
@@ -95,7 +95,7 @@
     },
     "legal": {
       "title": "Rechtliche Hinweise",
-      "content": "Diese Seite dient Informationszwecken. HotelTrust.ai behält sich das Recht vor, die auf dieser Website veröffentlichten Informationen zu ändern. Alle Angaben entsprechen dem tatsächlichen Stand der Dinge."
+      "content": "Diese Seite dient Informationszwecken. Trusthotel behält sich das Recht vor, die auf dieser Website veröffentlichten Informationen zu ändern. Alle Angaben entsprechen dem tatsächlichen Stand der Dinge."
     },
     "dataProtection": {
       "title": "Datenschutz",
@@ -106,10 +106,10 @@
   "datenschutz": {
     "title": "Datenschutzerklärung",
     "back": "Zurück",
-    "introduction": "HotelTrust.ai ist dem Schutz Ihrer persönlichen Daten verpflichtet. Diese Datenschutzerklärung informiert Sie darüber, wie wir Ihre persönlichen Daten gemäß der EU-Datenschutz-Grundverordnung (DSGVO) und den geltenden Datenschutzgesetzen sammeln, verwenden und schützen.",
+    "introduction": "Trusthotel ist dem Schutz Ihrer persönlichen Daten verpflichtet. Diese Datenschutzerklärung informiert Sie darüber, wie wir Ihre persönlichen Daten gemäß der EU-Datenschutz-Grundverordnung (DSGVO) und den geltenden Datenschutzgesetzen sammeln, verwenden und schützen.",
     "dataController": {
       "title": "Verantwortlicher für die Datenverarbeitung",
-      "name": "HotelTrust.ai",
+      "name": "Trusthotel",
       "address": "1136 Budapest, Hegedűs Gyula u. 29. A Üzlet 1.",
       "postalCode": "1380 Budapest, Pf",
       "city": "Budapest",
@@ -182,13 +182,13 @@
       "title": "Kompatibel mit führenden Systemen"
     },
     "hero": {
-      "title": "Sehen Sie live: Wie sieht die KI Ihr Hotel?",
+      "title": "Wie sieht die künstliche Intelligenz Ihr Hotel?",
       "subtitle": "Geben Sie den Hotelnamen ein, und unser System führt in 30 Sekunden eine Live-Analyse im ChatGPT- und Google-AI-Netzwerk durch.",
-      "description": "Kostenlose KI-Analyse, um zu sehen, was die künstliche Intelligenz über Sie sagt.",
+      "description": "Kostenlose 1-minütige KI-Analyse, um zu erfahren, was die künstliche Intelligenz über Ihr Hotel sagt.",
       "cta": "Starten Sie jetzt die kostenlose Analyse!"
     },
     "features": {
-      "title": "Was Sie für Ihr Geld bekommen",
+      "title": "Was bieten wir an?",
       "feature1": {
         "title": "Nie wieder Stress mit Gästebewertungen",
         "description": "Automatische, perfekte Antworten auf Google-Rezensionen. Unser System antwortet sofort, höflich und in perfektem Deutsch auf jede Google-Bewertung an Ihrer Stelle. Die KI sieht, dass Sie sich um Ihre Gäste kümmern, und wird Ihr Hotel daher häufiger empfehlen."
@@ -198,7 +198,7 @@
         "description": "Wir machen Ihre Vorteile für ChatGPT & Co. lesbar. Wir integrieren einen unsichtbaren Code auf Ihrer Website, den das menschliche Auge nicht sieht, aber die künstliche Intelligenz versteht daraus, dass Sie den besten Wellness-Bereich oder das leckerste Frühstück haben."
       },
       "feature3": {
-        "title": "Ihre digitale Visitenkarte – immer aktuell",
+        "title": "Immer aktuelle Daten",
         "description": "Synchronisation mit Google, Bing und Apple Maps. Wenn sich die Öffnungszeiten oder der Preis ändern, reicht es aus, es bei uns einmal zu ändern. Wir aktualisieren sofort in Google, Bing und auf Apple Maps, damit Gäste keine falschen Informationen erhalten."
       }
     },
@@ -207,7 +207,7 @@
       "description": "Früher musste man in der Google-Liste an erster Stelle stehen. Heute muss man in den KI-Antworten dabei sein. Wer aus den ChatGPT-Empfehlungen herausfällt, existiert für die Reisenden der Zukunft einfach nicht."
     },
     "process": {
-      "title": "So einfach ist es",
+      "title": "Wie funktioniert es?",
       "step1": {
         "title": "Analyse",
         "description": "Wir schauen, was die KI jetzt über Ihr Hotel sagt."
@@ -257,7 +257,7 @@
       "cta": "Für die Warteliste anmelden",
       "copyReply": "Kopieren",
       "liveDemo": "Live Demo",
-      "issueTip": "HotelTrust.ai beantwortet dieses Problem automatisch"
+      "issueTip": "Trusthotel beantwortet dieses Problem automatisch"
     },
     "faq": {
       "title": "Häufig gestellte Fragen",
@@ -281,7 +281,7 @@
     "footer": {
       "impressum": "Impressum",
       "datenschutz": "Datenschutz",
-      "copyright": "© 2026 HotelTrust.ai. Alle Rechte vorbehalten."
+      "copyright": "© 2026 Trusthotel. Alle Rechte vorbehalten."
     }
   }
 }

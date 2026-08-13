@@ -4,32 +4,32 @@
         "title": "Kompatibilis a következőkkel:"
       },
     "hero": {
-      "title": "Az AI ajánlja a hoteledet?",
-      "subtitle": "Hagyd, hogy a mesterséges intelligencia hozza a vendégeket!",
-      "description": "Elérjük, hogy ha valaki nyaralást keres a ChatGPT-vel, a hoteledet ajánlja elsőként.",
-      "cta": "Iratkozz fel a várólistára az 50%-os Early Bird kedvezményért!"
+      "title": "Ajánlja az AI a hoteledet – vagy a konkurenciáét?",
+      "subtitle": "Az új vendégek már nem Google-ben keresnek.",
+      "description": "ChatGPT-t, Google AI-t és digitális asszisztenseket kérdeznek.\n\nMi elérjük, hogy amikor egy vendég szállást keres mesterséges intelligenciával, a te hoteled jelenjen meg ajánlásként – ne a szomszédé.",
+      "cta": "🔒 Helyem biztosítása a várólistán – 50% Early Bird kedvezménnyel"
     },
     "features": {
-      "title": "Amiből érti, mit kap a pénzéért",
+      "title": "Konkrét problémák, konkrét megoldások",
       "feature1": {
-        "title": "Soha többé ne bajlódj a vendégek véleményeivel!",
-        "description": "A rendszerünk azonnal, udvariasan és tökéletes németességgel válaszol minden Google értékelésre helyetted. Az AI látja, hogy törődsz a vendégekkel, ezért többször fogja ajánlani a szállodádat."
+        "title": "Az AI figyeli, hogyan bánsz a vendégeiddel",
+        "description": "A Trusthotel automatikusan, udvariasan és hibátlan nyelvezettel válaszol minden Google-értékelésre.\n\n👉 Az AI-alapú keresők előnyben részesítik azokat a hoteleket, ahol láthatóan törődnek a vendégekkel.\n\nEredmény: jobb ajánlások, több foglalás, kevesebb adminisztráció."
       },
       "feature2": {
-        "title": "\"Tanítsd meg\" a ChatGPT-nek, miért a hoteled a legjobb!",
-        "description": "Beépítünk egy láthatatlan kódot a honlapodba, amit az emberi szem nem lát, de a mesterséges intelligencia ebből érti meg, hogy neked van a legjobb wellness részleged vagy a legfinomabb reggelid."
+        "title": "Mondd el az AI-nak, miben vagy jobb a többieknél",
+        "description": "Strukturált, AI-értelmezhető adatokat építünk a weboldaladba, amelyekből a ChatGPT és a Google AI pontosan megérti:\n– miben erős a hoteled\n– kiknek ideális\n– miért téged érdemes ajánlani\n\nAz ember nem lát belőle semmit.\nAz AI viszont igen."
       },
       "feature3": {
-        "title": "Legyen rend a digitális névjegyeden!",
-        "description": "Ha megváltozik a nyitvatartás vagy az ár, elég nálunk egyszer átírnod. Mi azonnal frissítjük a Google-ben, a Bing-ben és az Apple térképeken is, hogy a vendégek ne kapjanak téves információt."
+        "title": "Soha többé ne veszíts vendéget hibás információ miatt",
+        "description": "Ha az ár, a nyitvatartás vagy az elérhetőség változik, elég egyszer frissítened nálunk.\n\nMi szinkronizáljuk:\n– Google\n– Bing\n– Apple Maps\n\n👉 Az AI csak akkor ajánl, ha konzisztens adatokat lát."
       }
     },
     "whyNow": {
       "title": "Miért most?",
-      "description": "Régen a Google listáján kellett az elsőnek lenni. Ma már az AI válaszaiban kell benne lenni. Aki kimarad a ChatGPT ajánlásaiból, az a jövő utazói számára egyszerűen nem létezik."
+      "description": "Régen a Google első oldala számított.\nMa az számít, hogy benne vagy-e az AI válaszában.\n\nA legtöbb hotel még nem optimalizált erre.\nEz most versenyelőny. Nem sokáig."
     },
     "process": {
-      "title": "Pofonegyszerűen",
+      "title": "Hogy működik?",
       "step1": {
         "title": "Elemzés",
         "description": "Megnézzük, mit mond az AI a hoteledről most."
@@ -39,8 +39,8 @@
         "description": "Összekötjük a rendszerünket a hotel profiljával (5 perc)."
       },
       "step3": {
-        "title": "Hátradőlés",
-        "description": "A szoftver válaszol a véleményekre és építi a hotel hírnevét a háttérben."
+        "title": "Automatikus működés",
+        "description": "A rendszer 0–24-ben kezeli az AI-láthatóságodat, miközben te a vendégekre és a bevételre koncentrálsz."
       }
     },
     "form": {
@@ -48,7 +48,7 @@
       "emailPlaceholder": "az@email.hu",
       "hotelName": "Hotel neve",
       "hotelNamePlaceholder": "A hoteled neve",
-      "submit": "Kérem az 50% kedvezményt",
+      "submit": "🎁 Early Bird helyem lefoglalása – 50% kedvezménnyel",
       "success": "Sikeresen feliratkozott! Hamarosan jelentkezünk.",
       "error": "Valami hiba történt. Kérjük, próbálja újra."
     },
@@ -74,7 +74,7 @@
     "footer": {
       "impressum": "Impresszum",
       "datenschutz": "Adatvédelem",
-      "copyright": "© 2026 HotelTrust.ai. Minden jog fenntartva."
+      "copyright": "© 2026 Trusthotel. Minden jog fenntartva."
     }
   },
   "impressum": {
@@ -82,7 +82,7 @@
     "back": "Vissza",
     "company": {
       "title": "Céginformációk",
-      "name": "HotelTrust.ai",
+      "name": "Trusthotel",
       "address": "1136 Budapest, Hegedűs Gyula u. 29. A Üzlet 1.",
       "postalCode": "1380 Budapest, Pf",
       "city": "Budapest",
@@ -95,7 +95,7 @@
     },
     "legal": {
       "title": "Jogi információk",
-      "content": "Ez az oldal tájékoztatási célokat szolgál. A HotelTrust.ai tartalékjoggal rendelkezik a weboldalon közzétett információk módosításához. Minden adat a tényleges helyzetnek megfelelően került feltüntetésre."
+      "content": "Ez az oldal tájékoztatási célokat szolgál. A Trusthotel tartalékjoggal rendelkezik a weboldalon közzétett információk módosításához. Minden adat a tényleges helyzetnek megfelelően került feltüntetésre."
     },
     "dataProtection": {
       "title": "Adatvédelem",
@@ -106,10 +106,10 @@
   "datenschutz": {
     "title": "Adatvédelmi tájékoztató",
     "back": "Vissza",
-    "introduction": "A HotelTrust.ai elkötelezett az Ön személyes adatainak védelme mellett. Ez az adatvédelmi tájékoztató tájékoztatja Önt arról, hogyan gyűjtjük, használjuk és védjük az Ön személyes adatait az EU Általános Adatvédelmi Rendelet (GDPR) és a vonatkozó adatvédelmi törvények értelmében.",
+    "introduction": "A Trusthotel elkötelezett az Ön személyes adatainak védelme mellett. Ez az adatvédelmi tájékoztató tájékoztatja Önt arról, hogyan gyűjtjük, használjuk és védjük az Ön személyes adatait az EU Általános Adatvédelmi Rendelet (GDPR) és a vonatkozó adatvédelmi törvények értelmében.",
     "dataController": {
       "title": "Az adatkezelő",
-      "name": "HotelTrust.ai",
+      "name": "Trusthotel",
       "address": "1136 Budapest, Hegedűs Gyula u. 29. A Üzlet 1.",
       "postalCode": "1380 Budapest, Pf",
       "city": "Budapest",
@@ -182,13 +182,13 @@
       "title": "Kompatibilis a következőkkel:"
     },
     "hero": {
-      "title": "Nézd meg élőben hogyan látja az AI a hoteledet?",
+      "title": "Hogyan látja a mesterséges intelligencia a szállodádat?",
       "subtitle": "Adja meg szállodája nevét, és rendszerünk 30 másodpercen belül lefuttat egy élő elemzést a ChatGPT és a Google AI hálózatán.",
-      "description": "Ingyenes AI audit, hogy lássa, mit mond róla a mesterséges intelligencia.",
+      "description": "Ingyenes 1 perces MI elemzés, hogy megtudd, mit mond a Hoteledről a mesterséges intelligencia.",
       "cta": "Kezdje el az ingyenes auditot most!"
     },
     "features": {
-      "title": "Amiből érti, mit kap a pénzéért",
+      "title": "Mit ajánlunk?",
       "feature1": {
         "title": "Soha többé ne bajlódj a vendégek véleményeivel!",
         "description": "A rendszerünk azonnal, udvariasan és tökéletes németességgel válaszol minden Google értékelésre helyetted. Az AI látja, hogy törődsz a vendégekkel, ezért többször fogja ajánlani a szállodádat."
@@ -198,7 +198,7 @@
         "description": "Beépítünk egy láthatatlan kódot a honlapodba, amit az emberi szem nem lát, de a mesterséges intelligencia ebből érti meg, hogy neked van a legjobb wellness részleged vagy a legfinomabb reggelid."
       },
       "feature3": {
-        "title": "Legyen rend a digitális névjegyeden!",
+        "title": "Mindig naprakész adatok",
         "description": "Ha megváltozik a nyitvatartás vagy az ár, elég nálunk egyszer átírnod. Mi azonnal frissítjük a Google-ben, a Bing-ben és az Apple térképeken is, hogy a vendégek ne kapjanak téves információt."
       }
     },
@@ -207,7 +207,7 @@
       "description": "Régen a Google listáján kellett az elsőnek lenni. Ma már az AI válaszaiban kell benne lenni. Aki kimarad a ChatGPT ajánlásaiból, az a jövő utazói számára egyszerűen nem létezik."
     },
     "process": {
-      "title": "Pofonegyszerűen",
+      "title": "Hogy működik?",
       "step1": {
         "title": "Elemzés",
         "description": "Megnézzük, mit mond az AI a hoteledről most."
@@ -257,7 +257,7 @@
       "cta": "Feliratkozok a várólistára",
       "copyReply": "Másolás",
       "liveDemo": "Live Demo",
-      "issueTip": "A HotelTrust.ai automatikusan válaszol erre a problémára"
+      "issueTip": "A Trusthotel automatikusan válaszol erre a problémára"
     },
     "faq": {
       "title": "Gyakran ismételt kérdések",
@@ -281,7 +281,7 @@
     "footer": {
       "impressum": "Impresszum",
       "datenschutz": "Adatvédelem",
-      "copyright": "© 2026 HotelTrust.ai. Minden jog fenntartva."
+      "copyright": "© 2026 Trusthotel. Minden jog fenntartva."
     }
   }
 }
