@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { saveAuditEntry } from '@/lib/data';
+import { saveAuditResult, saveAuditEntryToKV, type AuditResult } from '@/lib/kv';
 import nodemailer from 'nodemailer';
+import { randomBytes } from 'crypto';
 
 // Audit API endpoint
 // POST /api/audit
+// Track processed requests to prevent duplicates (React strict mode, double submission, etc.)
+const processedRequests = new Map<string, number>();
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -15,6 +20,26 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    
+    // Prevent duplicate processing within 5 seconds
+    const requestKey = `${email.trim()}-${hotelName.trim()}-${hotelPlaceId || 'no-place'}`;
+    const now = Date.now();
+    const lastProcessed = processedRequests.get(requestKey);
+    
+    if (lastProcessed && (now - lastProcessed) < 5000) {
+      console.log('Duplicate request detected, skipping:', requestKey);
+      return NextResponse.json(
+        { error: 'Request already being processed' },
+        { status: 429 }
+      );
+    }
+    
+    processedRequests.set(requestKey, now);
+    
+    // Clean up old entries (older than 1 minute)
+    setTimeout(() => {
+      processedRequests.delete(requestKey);
+    }, 60000);
 
     // Step 1: Get hotel data from Google Places API (New)
     // Store original input name separately - this is what user typed
@@ -372,8 +397,9 @@ export async function POST(request: NextRequest) {
       
       // Test with Gemini Flash 2.5
       try {
-        const geminiApiKey = process.env.GEMINI_API_KEY;
-        if (geminiApiKey) {
+        const geminiApiKey = process.env.GEMINI_API_KEY?.trim();
+        if (geminiApiKey && geminiApiKey.length > 0) {
+          console.log(`[GEMINI] API key found, length: ${geminiApiKey.length}`);
           let geminiPositions: number[] = [];
           
           for (let questionIndex = 0; questionIndex < testQuestions.length; questionIndex++) {
@@ -395,31 +421,129 @@ export async function POST(request: NextRequest) {
                 }
               }
               
-              const geminiResponse = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
-                {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    contents: [{
-                      parts: [{
-                        text: promptText
-                      }]
-                    }],
-                    generationConfig: {
-                      temperature: 0.3, // Lower temperature for more accuracy, less hallucination
-                      maxOutputTokens: 500,
+              console.log(`[GEMINI] Sending request for question ${questionIndex + 1}/${testQuestions.length}`);
+              // Try gemini-2.5-flash with v1beta API first (most balanced), fallback to gemini-2.5-flash-lite, then gemini-1.5-pro
+              let geminiResponse: Response;
+              try {
+                geminiResponse = await Promise.race([
+                  fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
+                    {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': geminiApiKey,
+                      },
+                      body: JSON.stringify({
+                        contents: [{
+                          parts: [{
+                            text: promptText
+                          }]
+                        }],
+                        generationConfig: {
+                          temperature: 0.3, // Lower temperature for more accuracy, less hallucination
+                          maxOutputTokens: 500,
+                        }
+                      }),
                     }
-                  }),
+                  ),
+                  new Promise<Response>((_, reject) => 
+                    setTimeout(() => reject(new Error('Gemini API timeout after 30 seconds')), 30000)
+                  )
+                ]);
+              } catch (error) {
+                // If 404 or other error, try fallback to gemini-2.5-flash-lite, then gemini-1.5-pro
+                console.warn(`[GEMINI] Primary model (gemini-2.5-flash) failed, trying gemini-2.5-flash-lite fallback:`, error);
+                try {
+                  geminiResponse = await Promise.race([
+                    fetch(
+                      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`,
+                      {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'x-goog-api-key': geminiApiKey,
+                        },
+                        body: JSON.stringify({
+                          contents: [{
+                            parts: [{
+                              text: promptText
+                            }]
+                          }],
+                          generationConfig: {
+                            temperature: 0.3,
+                            maxOutputTokens: 500,
+                          }
+                        }),
+                      }
+                    ),
+                    new Promise<Response>((_, reject) => 
+                      setTimeout(() => reject(new Error('Gemini API timeout after 30 seconds')), 30000)
+                    )
+                  ]);
+                  console.log(`[GEMINI] Fallback to gemini-pro successful`);
+                } catch (fallbackError) {
+                  console.error(`[GEMINI] Both models failed:`, fallbackError);
+                  // Continue to next question instead of breaking
+                  continue;
                 }
-              );
+              }
 
               if (!geminiResponse.ok) {
                 const errorText = await geminiResponse.text();
-                console.error(`Gemini API error (${geminiResponse.status}):`, errorText);
-              } else {
+                console.error(`[GEMINI] API error (${geminiResponse.status}):`, errorText);
+                
+                // If 404, try fallback to gemini-1.5-flash, then gemini-pro
+                if (geminiResponse.status === 404) {
+                  console.warn(`[GEMINI] Primary model (gemini-1.5-pro) failed with 404, trying gemini-1.5-flash fallback`);
+                  try {
+                    geminiResponse = await Promise.race([
+                      fetch(
+                        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`,
+                        {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'x-goog-api-key': geminiApiKey,
+                          },
+                          body: JSON.stringify({
+                            contents: [{
+                              parts: [{
+                                text: promptText
+                              }]
+                            }],
+                            generationConfig: {
+                              temperature: 0.3,
+                              maxOutputTokens: 500,
+                            }
+                          }),
+                        }
+                      ),
+                      new Promise<Response>((_, reject) => 
+                        setTimeout(() => reject(new Error('Gemini API timeout after 30 seconds')), 30000)
+                      )
+                    ]);
+                    console.log(`[GEMINI] Fallback to gemini-pro successful, status: ${geminiResponse.status}, ok: ${geminiResponse.ok}`);
+                    // After fallback, check if response is ok and process it
+                    if (!geminiResponse.ok) {
+                      const fallbackErrorText = await geminiResponse.text();
+                      console.error(`[GEMINI] Fallback also failed (${geminiResponse.status}):`, fallbackErrorText);
+                      continue;
+                    }
+                  } catch (fallbackError) {
+                    console.error(`[GEMINI] Both models failed:`, fallbackError);
+                    // Continue to next question instead of breaking
+                    continue;
+                  }
+                } else {
+                  // For other errors, continue to next question
+                  continue;
+                }
+              }
+              
+              // Process response (either from primary model or fallback)
+              if (geminiResponse && geminiResponse.ok) {
+                console.log(`[GEMINI] Response received for question ${questionIndex + 1}`);
                 const geminiData = await geminiResponse.json();
                 
                 // Check if response has valid structure
@@ -575,7 +699,12 @@ export async function POST(request: NextRequest) {
                 }
               }
             } catch (error) {
-              console.error('Gemini API error for question:', question, error);
+              console.error(`[GEMINI] Error for question ${questionIndex + 1}:`, error);
+              if (error instanceof Error) {
+                console.error(`[GEMINI] Error message: ${error.message}`);
+                console.error(`[GEMINI] Error stack: ${error.stack}`);
+              }
+              // Continue to next question instead of breaking the loop
             }
             
             // Small delay to avoid rate limiting
@@ -853,53 +982,59 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 6: Calculate Trust Score deterministically (after AI visibility check)
-    // More aggressive penalties for real problems to show realistic scores
+    // Stricter penalties - 100 points should be very hard to achieve
     const baseScore = 100;
     
-    // Penalty for unanswered reviews: 12 points per unanswered review (more aggressive)
-    const unansweredPenalty = estimatedUnanswered * 12;
+    // Penalty for unanswered reviews: 15 points per unanswered review (stricter)
+    const unansweredPenalty = estimatedUnanswered * 15;
     
-    // Penalty for negative reviews ratio: up to 35 points (increased)
-    const negativeRatioPenalty = analyzedReviewsCount > 0 ? Math.round((negativeReviews / analyzedReviewsCount) * 35) : 0;
+    // Penalty for negative reviews ratio: up to 40 points (stricter)
+    const negativeRatioPenalty = analyzedReviewsCount > 0 ? Math.round((negativeReviews / analyzedReviewsCount) * 40) : 0;
     
-    // Penalty for no website data: 20 points
-    const websitePenalty = !websiteData ? 20 : 0;
+    // Penalty for no website data: 25 points (stricter)
+    const websitePenalty = !websiteData ? 25 : 0;
     
-    // Penalty for AI visibility: if not visible in any AI, major penalty
-    const aiVisibilityPenalty = (!aiVisibility.gemini.visible && !aiVisibility.chatgpt.visible && !aiVisibility.bing.visible) ? 40 : 0;
+    // Penalty for AI visibility: if not visible in any AI, major penalty (stricter)
+    const aiVisibilityPenalty = (!aiVisibility.gemini.visible && !aiVisibility.chatgpt.visible && !aiVisibility.bing.visible) ? 45 : 0;
     
     // Additional penalty if hotel is visible but not in top 3
-    // More aggressive penalties: even if visible, being lower in rankings hurts score
+    // Stricter penalties: even small position differences matter more
     let positionPenalty = 0;
     if (aiVisibility.gemini.visible && aiVisibility.gemini.position) {
       if (aiVisibility.gemini.position === 1) {
         positionPenalty += 0; // No penalty for 1st place
       } else if (aiVisibility.gemini.position === 2) {
-        positionPenalty += 5; // Small penalty for 2nd place
+        positionPenalty += 8; // Increased penalty for 2nd place
       } else if (aiVisibility.gemini.position === 3) {
-        positionPenalty += 10; // Medium penalty for 3rd place
+        positionPenalty += 15; // Increased penalty for 3rd place
       } else {
-        positionPenalty += 10 + (aiVisibility.gemini.position - 3) * 8; // 8 points per position after 3rd
+        positionPenalty += 15 + (aiVisibility.gemini.position - 3) * 10; // 10 points per position after 3rd (stricter)
       }
     }
     if (aiVisibility.chatgpt.visible && aiVisibility.chatgpt.position) {
       if (aiVisibility.chatgpt.position === 1) {
         positionPenalty += 0; // No penalty for 1st place
       } else if (aiVisibility.chatgpt.position === 2) {
-        positionPenalty += 5; // Small penalty for 2nd place
+        positionPenalty += 8; // Increased penalty for 2nd place
       } else if (aiVisibility.chatgpt.position === 3) {
-        positionPenalty += 10; // Medium penalty for 3rd place
+        positionPenalty += 15; // Increased penalty for 3rd place
       } else {
-        positionPenalty += 10 + (aiVisibility.chatgpt.position - 3) * 8; // 8 points per position after 3rd
+        positionPenalty += 15 + (aiVisibility.chatgpt.position - 3) * 10; // 10 points per position after 3rd (stricter)
       }
     }
     
-    // Penalty if no reviews answered at all
-    const noAnswersPenalty = (answeredCount === 0 || (answeredCount !== undefined && answeredCount === 0)) ? 30 : 0;
+    // Penalty if no reviews answered at all: stricter
+    const noAnswersPenalty = (answeredCount === 0 || (answeredCount !== undefined && answeredCount === 0)) ? 35 : 0;
     
-    // Calculate final score with more aggressive penalties (lower scores = more conversion)
-    // Minimum score is 15 (was 20) to show more realistic problems
-    const calculatedTrustScore = Math.max(15, Math.min(100, baseScore - unansweredPenalty - negativeRatioPenalty - websitePenalty - aiVisibilityPenalty - positionPenalty - noAnswersPenalty));
+    // Additional penalty if hotel is visible but only in one AI (not ideal)
+    const singleAIVisibilityPenalty = 
+      ((aiVisibility.gemini.visible ? 1 : 0) + 
+       (aiVisibility.chatgpt.visible ? 1 : 0) + 
+       (aiVisibility.bing.visible ? 1 : 0)) === 1 ? 10 : 0;
+    
+    // Calculate final score with stricter penalties (100 points should be very hard to achieve)
+    // Minimum score is 10 (stricter) to show more realistic problems
+    const calculatedTrustScore = Math.max(10, Math.min(100, baseScore - unansweredPenalty - negativeRatioPenalty - websitePenalty - aiVisibilityPenalty - positionPenalty - noAnswersPenalty - singleAIVisibilityPenalty));
 
     // Step 7: AI Analysis using Gemini Flash 2.5 - only for text generation (cheaper than OpenAI)
     const reviewsText = reviews.slice(0, 5).map((r, idx) => 
@@ -937,36 +1072,146 @@ Fontos:
     let aiAnalysis = null;
     try {
       // Use Gemini Flash 2.5 instead of OpenAI (cheaper)
-      const geminiApiKey = process.env.GEMINI_API_KEY;
-      if (geminiApiKey) {
-        const geminiResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              contents: [{
-                parts: [{
-                  text: `Te egy világszínvonalú mesterséges intelligencia szakértő vagy. Mindig JSON formátumban válaszolsz.\n\n${aiPrompt}`
-                }]
-              }],
-              generationConfig: {
-                temperature: 0.3, // Lower temperature for more accuracy, less hallucination
-                maxOutputTokens: 2000,
-                responseMimeType: 'application/json',
+      const geminiApiKey = process.env.GEMINI_API_KEY?.trim();
+      if (geminiApiKey && geminiApiKey.length > 0) {
+        console.log(`[GEMINI] API key found for AI analysis, length: ${geminiApiKey.length}`);
+        console.log(`[GEMINI] Sending AI analysis request`);
+        // Try gemini-2.5-flash with v1beta API first, fallback to gemini-2.5-flash-lite, then gemini-1.5-pro
+        let geminiResponse: Response;
+        try {
+          geminiResponse = await Promise.race([
+            fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-goog-api-key': geminiApiKey,
+                },
+                body: JSON.stringify({
+                  contents: [{
+                    parts: [{
+                      text: `Te egy világszínvonalú mesterséges intelligencia szakértő vagy. Válaszolj TISZTA JSON formátumban, semmi más szöveg nélkül.\n\n${aiPrompt}\n\nFontos: A válasz csak JSON legyen, semmi más!`
+                    }]
+                  }],
+                  generationConfig: {
+                    temperature: 0.3, // Lower temperature for more accuracy, less hallucination
+                    maxOutputTokens: 2000,
+                  }
+                }),
               }
-            }),
+            ),
+            new Promise<Response>((_, reject) => 
+              setTimeout(() => reject(new Error('Gemini API timeout after 60 seconds')), 60000)
+            )
+          ]);
+        } catch (error) {
+          // If 404 or other error, try fallback to gemini-pro
+          console.warn(`[GEMINI] Primary model failed for AI analysis, trying gemini-pro fallback:`, error);
+          try {
+            geminiResponse = await Promise.race([
+              fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'x-goog-api-key': geminiApiKey,
+                  },
+                  body: JSON.stringify({
+                    contents: [{
+                      parts: [{
+                        text: `Te egy világszínvonalú mesterséges intelligencia szakértő vagy. Válaszolj TISZTA JSON formátumban, semmi más szöveg nélkül.\n\n${aiPrompt}\n\nFontos: A válasz csak JSON legyen, semmi más!`
+                      }]
+                    }],
+                    generationConfig: {
+                      temperature: 0.3,
+                      maxOutputTokens: 2000,
+                    }
+                  }),
+                }
+              ),
+              new Promise<Response>((_, reject) => 
+                setTimeout(() => reject(new Error('Gemini API timeout after 60 seconds')), 60000)
+              )
+            ]);
+            console.log(`[GEMINI] Fallback to gemini-1.5-flash successful for AI analysis, status: ${geminiResponse.status}, ok: ${geminiResponse.ok}`);
+            if (!geminiResponse.ok && geminiResponse.status === 404) {
+              // Try final fallback to gemini-pro
+              console.warn(`[GEMINI] gemini-1.5-flash also failed, trying gemini-pro as final fallback for AI analysis`);
+              try {
+                geminiResponse = await Promise.race([
+                  fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent`,
+                    {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': geminiApiKey,
+                      },
+                      body: JSON.stringify({
+                        contents: [{
+                          parts: [{
+                            text: `Te egy világszínvonalú mesterséges intelligencia szakértő vagy. Válaszolj TISZTA JSON formátumban, semmi más szöveg nélkül.\n\n${aiPrompt}\n\nFontos: A válasz csak JSON legyen, semmi más!`
+                          }]
+                        }],
+                        generationConfig: {
+                          temperature: 0.3,
+                          maxOutputTokens: 2000,
+                        }
+                      }),
+                    }
+                  ),
+                  new Promise<Response>((_, reject) => 
+                    setTimeout(() => reject(new Error('Gemini API timeout after 60 seconds')), 60000)
+                  )
+                ]);
+                console.log(`[GEMINI] Final fallback to gemini-pro successful for AI analysis, status: ${geminiResponse.status}, ok: ${geminiResponse.ok}`);
+                if (!geminiResponse.ok) {
+                  const finalErrorText = await geminiResponse.text();
+                  console.error(`[GEMINI] All models failed for AI analysis (${geminiResponse.status}):`, finalErrorText);
+                  throw new Error(`All Gemini models failed: ${finalErrorText}`);
+                }
+              } catch (finalFallbackError) {
+                console.error(`[GEMINI] All fallback models failed for AI analysis:`, finalFallbackError);
+                throw finalFallbackError;
+              }
+            } else if (!geminiResponse.ok) {
+              const fallbackErrorText = await geminiResponse.text();
+              console.error(`[GEMINI] Fallback failed for AI analysis (${geminiResponse.status}):`, fallbackErrorText);
+              throw new Error(`Gemini fallback failed: ${fallbackErrorText}`);
+            }
+          } catch (fallbackError) {
+            console.error(`[GEMINI] Fallback failed for AI analysis:`, fallbackError);
+            throw fallbackError;
           }
-        );
-
+        }
+        
+        // Check if response is ok after potential fallback
         if (geminiResponse.ok) {
+          console.log(`[GEMINI] AI analysis response received`);
           const geminiData = await geminiResponse.json();
           const aiContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
           if (aiContent) {
+            console.log(`[GEMINI] AI content extracted successfully`);
             try {
-              const parsed = JSON.parse(aiContent);
+              // Try to extract JSON from the response (it might contain markdown code blocks or extra text)
+              let jsonContent = aiContent.trim();
+              
+              // Remove markdown code blocks if present
+              if (jsonContent.startsWith('```json')) {
+                jsonContent = jsonContent.replace(/^```json\s*/i, '').replace(/\s*```$/i, '');
+              } else if (jsonContent.startsWith('```')) {
+                jsonContent = jsonContent.replace(/^```\s*/i, '').replace(/\s*```$/i, '');
+              }
+              
+              // Try to find JSON object in the response
+              const jsonMatch = jsonContent.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                jsonContent = jsonMatch[0];
+              }
+              
+              const parsed = JSON.parse(jsonContent);
               // Merge AI text generation with deterministic numbers
               // Generate critical issues with position-based recommendations
               const criticalIssues = parsed.criticalIssues || [];
@@ -1058,12 +1303,23 @@ Fontos:
                 revenueLoss: parsed.revenueLoss || revenueLossPercentage,
               };
             } catch (e) {
-              console.error('Failed to parse Gemini response:', e);
+              console.error('[GEMINI] Failed to parse Gemini response:', e);
+              if (e instanceof Error) {
+                console.error(`[GEMINI] Parse error message: ${e.message}`);
+                console.error(`[GEMINI] Parse error stack: ${e.stack}`);
+              }
               aiAnalysis = null;
             }
+        } else {
+          console.error('[GEMINI] No AI content in response');
           }
+        } else {
+          const errorText = await geminiResponse.text();
+          console.error(`[GEMINI] AI analysis API error (${geminiResponse.status}):`, errorText);
+          // Fall through to OpenAI fallback
         }
       } else {
+        console.warn('[GEMINI] API key not found or empty, falling back to OpenAI');
         // Fallback to OpenAI if Gemini key not available
         const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
@@ -1346,31 +1602,162 @@ Fontos:
       aiAnalysis.unansweredReviews = '20+';
     }
 
-    // Step 5: Send email with results (using Gmail SMTP)
+    // Generate unique ID for the audit
+    const auditId = randomBytes(12).toString('hex');
+    
+    // Prepare audit result for KV storage
+    const displayUnansweredReviews = estimatedUnanswered > 20 ? '20+' : estimatedUnanswered;
+    const auditResult: AuditResult = {
+      id: auditId,
+      email: email.trim(),
+      hotelName: hotelData.name,
+      hotelPlaceId: hotelData.placeId,
+      trustScore: calculatedTrustScore,
+      aiVisibility: {
+        chatgpt: aiVisibility.chatgpt,
+        gemini: aiVisibility.gemini,
+        bing: aiVisibility.bing,
+      },
+      unansweredReviews: displayUnansweredReviews,
+      totalReviews: hotelData.totalReviews,
+      answeredReviews: answeredCount,
+      sampleReply: aiAnalysis?.sampleReply || '',
+      criticalIssues: aiAnalysis?.criticalIssues || [],
+      recommendations: aiAnalysis?.recommendations || [],
+      revenueLoss: aiAnalysis?.revenueLoss || '10-15%',
+      createdAt: new Date().toISOString(),
+      locale,
+    };
+
+    // Save audit entry to Redis/KV (for admin dashboard) and file storage (fallback)
+    const auditEntry = {
+      id: auditId, // Use the same ID for shareable links
+      email: email.trim(),
+      hotelName: hotelData.name,
+      hotelPlaceId: hotelData.placeId,
+      trustScore: calculatedTrustScore,
+      aiVisibility: {
+        chatgpt: aiVisibility.chatgpt,
+        gemini: aiVisibility.gemini,
+        bing: aiVisibility.bing,
+      },
+      unansweredReviews: displayUnansweredReviews,
+      totalReviews: hotelData.totalReviews,
+      answeredReviews: answeredCount,
+      sampleReply: aiAnalysis?.sampleReply || '',
+      criticalIssues: aiAnalysis?.criticalIssues || [],
+      recommendations: aiAnalysis?.recommendations || [],
+      revenueLoss: aiAnalysis?.revenueLoss || '10-15%',
+      createdAt: new Date().toISOString(),
+      locale,
+    };
+    
+    // Save to Redis/KV (primary storage for admin dashboard)
+    console.log('[AUDIT API] Saving audit entry to Redis/KV:', auditId);
     try {
-      const emailSubject = locale === 'hu'
-        ? `HotelTrust.ai Audit Eredmény - ${hotelName}`
-        : `HotelTrust.ai Audit Ergebnis - ${hotelName}`;
+      await saveAuditEntryToKV(auditEntry);
+      console.log(`[AUDIT API] ✅ Audit entry saved to Redis/KV: ${auditId}`);
+    } catch (kvError) {
+      console.error('[AUDIT API] ❌ Error saving audit entry to Redis/KV:', kvError);
+      if (kvError instanceof Error) {
+        console.error('[AUDIT API] Error details:', kvError.message);
+        console.error('[AUDIT API] Stack:', kvError.stack);
+      }
+      // Continue even if KV save fails
+    }
+    
+    // Also save to file storage (fallback) - CRITICAL for shareable links
+    // This works on local dev, but on Vercel it's read-only, so we rely on Redis/KV
+    try {
+      const { saveAuditEntry } = await import('@/lib/data');
+      saveAuditEntry(auditEntry);
+      console.log(`[AUDIT API] ✅ Audit entry saved to file storage: ${auditId}`);
+    } catch (fileError) {
+      console.error('[AUDIT API] ⚠️ Error saving audit entry to file (expected on Vercel read-only filesystem):', fileError);
+      if (fileError instanceof Error) {
+        console.error('[AUDIT API] Error details:', fileError.message);
+      }
+      // Continue even if file save fails - this is expected on Vercel
+    }
 
-      const emailHtml = `
-        <h2>${locale === 'hu' ? 'Audit Eredmény' : 'Audit Ergebnis'}</h2>
-        <p><strong>${locale === 'hu' ? 'Hotel' : 'Hotel'}:</strong> ${hotelName}</p>
-        <p><strong>Trust Score:</strong> ${aiAnalysis.trustScore}/100</p>
-        <h3>${locale === 'hu' ? 'AI Láthatóság' : 'KI-Sichtbarkeit'}</h3>
-        <ul>
-          <li>ChatGPT: ${aiAnalysis.aiVisibility.chatgpt ? '✅' : '❌'}</li>
-          <li>Gemini: ${aiAnalysis.aiVisibility.gemini ? '✅' : '❌'}</li>
-          <li>Bing: ${aiAnalysis.aiVisibility.bing ? '✅' : '❌'}</li>
-        </ul>
-        <h3>${locale === 'hu' ? 'Kritikus Hibák' : 'Kritische Probleme'}</h3>
-        <ul>
-          ${aiAnalysis.criticalIssues.map((issue: string) => `<li>${issue}</li>`).join('')}
-        </ul>
-        <h3>${locale === 'hu' ? 'Példa Válasz' : 'Beispielantwort'}</h3>
-        <p>${aiAnalysis.sampleReply}</p>
-      `;
+    // Also save via KV interface for compatibility
+    // This is CRITICAL for shareable links to work across different serverless invocations
+    try {
+      console.log(`[AUDIT API] Saving audit result to Redis/KV: ${auditId}`);
+      await saveAuditResult(auditResult);
+      console.log(`[AUDIT API] ✅ Audit result saved to Redis/KV successfully: ${auditId}`);
+      
+      // Verify the save was successful by trying to retrieve it immediately
+      const { getAuditResult } = await import('@/lib/kv');
+      const verifyResult = await getAuditResult(auditId);
+      if (verifyResult) {
+        console.log(`[AUDIT API] ✅ Verified: Audit result can be retrieved from Redis/KV: ${auditId}`);
+      } else {
+        console.error(`[AUDIT API] ❌ WARNING: Audit result saved but cannot be retrieved from Redis/KV: ${auditId}`);
+        console.error(`[AUDIT API] This means Redis/KV is not working properly. Check environment variables.`);
+        console.error(`[AUDIT API] KV_REST_API_URL: ${process.env.KV_REST_API_URL ? 'Set' : 'NOT SET'}`);
+        console.error(`[AUDIT API] UPSTASH_REDIS_REST_URL: ${process.env.UPSTASH_REDIS_REST_URL ? 'Set' : 'NOT SET'}`);
+        // Try to save to file storage as emergency fallback
+        try {
+          const { saveAuditEntry } = await import('@/lib/data');
+          saveAuditEntry(auditEntry);
+          console.log(`[AUDIT API] ✅ Emergency fallback: Audit entry saved to file storage: ${auditId}`);
+        } catch (fileError) {
+          console.error(`[AUDIT API] ❌ CRITICAL: Cannot save to file storage either:`, fileError);
+        }
+      }
+    } catch (kvError) {
+      console.error(`[AUDIT API] ❌ CRITICAL ERROR: Failed to save audit result to Redis/KV: ${auditId}`, kvError);
+      if (kvError instanceof Error) {
+        console.error(`[AUDIT API] Error details: ${kvError.message}`);
+        console.error(`[AUDIT API] Stack: ${kvError.stack}`);
+      }
+      console.error(`[AUDIT API] KV_REST_API_URL: ${process.env.KV_REST_API_URL ? 'Set' : 'NOT SET'}`);
+      console.error(`[AUDIT API] UPSTASH_REDIS_REST_URL: ${process.env.UPSTASH_REDIS_REST_URL ? 'Set' : 'NOT SET'}`);
+      // Try emergency fallback to file storage
+      try {
+        const { saveAuditEntry } = await import('@/lib/data');
+        saveAuditEntry(auditEntry);
+        console.log(`[AUDIT API] ✅ Emergency fallback: Audit entry saved to file storage: ${auditId}`);
+      } catch (fileError) {
+        console.error(`[AUDIT API] ❌ CRITICAL: Cannot save to file storage either:`, fileError);
+      }
+    }
 
-      // Use Gmail SMTP if credentials are available
+    // Also cache in memory for immediate access (temporary until KV is set up)
+    // This will be available in the GET endpoint
+    try {
+      const auditRoute = await import('@/app/api/audit/[id]/route');
+      if (auditRoute.auditCache) {
+        const formattedResult = {
+          email: auditResult.email, // Include email for waitlist subscription
+          hotel: {
+            name: auditResult.hotelName,
+            placeId: auditResult.hotelPlaceId,
+          },
+          analysis: {
+            trustScore: auditResult.trustScore,
+            aiVisibility: auditResult.aiVisibility,
+            unansweredReviews: auditResult.unansweredReviews,
+            totalReviews: auditResult.totalReviews,
+            answeredReviews: auditResult.answeredReviews,
+            sampleReply: auditResult.sampleReply,
+            criticalIssues: auditResult.criticalIssues,
+            recommendations: auditResult.recommendations,
+            revenueLoss: auditResult.revenueLoss,
+          },
+          timestamp: auditResult.createdAt,
+        };
+        auditRoute.auditCache.set(auditId, formattedResult);
+        console.log(`Audit result cached in memory: ${auditId}`);
+      }
+    } catch (cacheError) {
+      console.warn('Failed to cache audit result in memory:', cacheError);
+      // Continue even if cache fails
+    }
+
+    // Send email with audit link
+    try {
       const gmailUser = process.env.GMAIL_USER;
       const gmailPassword = process.env.GMAIL_APP_PASSWORD;
 
@@ -1383,52 +1770,84 @@ Fontos:
           },
         });
 
+        const auditUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://hoteltrust.at'}/${locale}/audit/${auditId}`;
+        
+        // Short ID for email subject (first 8 characters)
+        const shortId = auditId.substring(0, 8).toUpperCase();
+        
+        const emailSubject = locale === 'hu' 
+          ? `Trusthotel - Audit jelentés - ID(${shortId})`
+          : `Trusthotel - Audit-Bericht - ID(${shortId})`;
+        
+        const emailHtml = `
+<!DOCTYPE html>
+<html lang="${locale}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${emailSubject}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f5f5f5;">
+    <tr>
+      <td style="padding: 40px 20px;">
+        <table role="presentation" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <tr>
+            <td style="padding: 40px 30px;">
+              <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 600; color: #1a1a1a;">${locale === 'hu' ? 'Köszönjük, hogy minket választott!' : 'Vielen Dank, dass Sie uns gewählt haben!'}</h1>
+              
+              <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.6; color: #4a4a4a;">
+                ${locale === 'hu' 
+                  ? 'Február elején fog elindulni a projekt, remélem elnyertük tetszését. Az audit elérhető az alábbi linken.'
+                  : 'Das Projekt wird Anfang Februar starten, ich hoffe, wir haben Ihr Interesse geweckt. Die Analyse ist unter dem folgenden Link verfügbar.'}
+              </p>
+              
+              <table role="presentation" style="width: 100%; margin: 30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="${auditUrl}" style="display: inline-block; padding: 14px 28px; background-color: #1A73E8; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">${locale === 'hu' ? 'Audit megtekintése' : 'Analyse ansehen'}</a>
+                  </td>
+                </tr>
+              </table>
+              
+              <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
+              
+              <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #999999;">
+                ${locale === 'hu' 
+                  ? 'Ez egy automatikus email a Trusthotel rendszerből.'
+                  : 'Dies ist eine automatische E-Mail vom Trusthotel System.'}
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+        `;
+
         await transporter.sendMail({
-          from: `HotelTrust.ai <${gmailUser}>`,
-          to: email,
+          from: `Trusthotel <${gmailUser}>`,
+          to: email.trim(),
           subject: emailSubject,
           html: emailHtml,
         });
 
-        console.log('Email sent successfully via Gmail SMTP');
+        console.log('Audit email sent successfully with link:', auditUrl);
       } else {
-        console.warn('Gmail SMTP credentials not configured. Skipping email send.');
+        console.warn('Gmail SMTP credentials not configured. Skipping audit email.');
       }
-    } catch (error) {
-      console.error('Email sending error:', error);
+    } catch (emailError) {
+      console.error('Error sending audit email:', emailError);
       // Continue even if email fails
     }
 
-    // Save audit entry to database
-    try {
-      const displayUnansweredReviews = estimatedUnanswered > 20 ? '20+' : estimatedUnanswered;
-      saveAuditEntry({
-        email: email.trim(),
-        hotelName: hotelData.name,
-        hotelPlaceId: hotelData.placeId,
-        trustScore: calculatedTrustScore,
-        aiVisibility: {
-          chatgpt: aiVisibility.chatgpt,
-          gemini: aiVisibility.gemini,
-          bing: aiVisibility.bing,
-        },
-        unansweredReviews: displayUnansweredReviews,
-        totalReviews: hotelData.totalReviews,
-        answeredReviews: answeredCount,
-        criticalIssues: aiAnalysis?.criticalIssues || [],
-        recommendations: aiAnalysis?.recommendations || [],
-        revenueLoss: aiAnalysis?.revenueLoss || '10-15%',
-        locale,
-      });
-    } catch (saveError) {
-      console.error('Error saving audit entry:', saveError);
-      // Continue even if save fails
-    }
-
-    // Return results
+    // Return results with audit ID
     return NextResponse.json({
       success: true,
       data: {
+        id: auditId,
         hotel: hotelData,
         reviews,
         analysis: aiAnalysis,

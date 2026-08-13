@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { saveWaitlistEntry, getWaitlistEntries } from '@/lib/data';
+import { saveWaitlistEntry as saveWaitlistEntryToFile, getWaitlistEntries as getWaitlistEntriesFromFile } from '@/lib/data';
+import { saveWaitlistEntry, getWaitlistEntries } from '@/lib/kv';
 import nodemailer from 'nodemailer';
 
 export async function POST(request: NextRequest) {
@@ -23,12 +24,48 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Mentés
-    const entry = saveWaitlistEntry({
+    // Ellenőrizzük, hogy az email már létezik-e (Redis/KV-ból)
+    const existingEntries = await getWaitlistEntries();
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingEntry = existingEntries.find(
+      e => e.email.toLowerCase() === normalizedEmail
+    );
+
+    if (existingEntry) {
+      // Email már létezik - ne növeljük a számot, de adjunk vissza sikeres választ
+      const totalCount = existingEntries.length;
+      return NextResponse.json(
+        { 
+          success: true, 
+          message: locale === 'hu' 
+            ? 'Ez az email cím már fel van iratkozva a várólistára!' 
+            : 'Diese E-Mail-Adresse ist bereits für die Warteliste angemeldet!',
+          alreadyExists: true,
+          count: totalCount
+        },
+        { status: 200 }
+      );
+    }
+
+    // Mentés Redis/KV-ba (és file storage-ba fallback-ként)
+    console.log('[WAITLIST API] Saving waitlist entry:', { email: email.trim(), hotelName: hotelName.trim(), locale });
+    const entry = await saveWaitlistEntry({
       email: email.trim(),
       hotelName: hotelName.trim(),
       locale,
     });
+    console.log('[WAITLIST API] Waitlist entry saved:', entry.id);
+    
+    // Also save to file storage as fallback
+    try {
+      saveWaitlistEntryToFile({
+        email: email.trim(),
+        hotelName: hotelName.trim(),
+        locale,
+      });
+    } catch (fileError) {
+      console.warn('Failed to save waitlist entry to file (non-critical):', fileError);
+    }
 
     // Email értesítés küldése az adminnak
     try {
@@ -36,7 +73,7 @@ export async function POST(request: NextRequest) {
       const gmailPassword = process.env.GMAIL_APP_PASSWORD;
 
       if (gmailUser && gmailPassword) {
-        const totalCount = getWaitlistEntries().length;
+        const totalCount = (await getWaitlistEntries()).length;
         
         const transporter = nodemailer.createTransport({
           service: 'gmail',
@@ -57,7 +94,7 @@ export async function POST(request: NextRequest) {
             <p><strong>${locale === 'hu' ? 'Hotel neve:' : 'Hotel Name:'}</strong> ${hotelName.trim()}</p>
             <p><strong>${locale === 'hu' ? 'Email cím:' : 'E-Mail-Adresse:'}</strong> ${email.trim()}</p>
             <p><strong>${locale === 'hu' ? 'Nyelv:' : 'Sprache:'}</strong> ${locale.toUpperCase()}</p>
-            <p><strong>${locale === 'hu' ? 'Regisztráció ideje:' : 'Registrierungszeit:'}</strong> ${new Date().toLocaleString(locale === 'hu' ? 'hu-HU' : 'de-DE')}</p>
+            <p><strong>${locale === 'hu' ? 'Regisztráció ideje:' : 'Registrierungszeit:'}</strong> ${new Date().toLocaleString(locale === 'hu' ? 'hu-HU' : 'de-DE', { timeZone: 'Europe/Budapest' })}</p>
           </div>
 
           <div style="background: #e8f0fe; padding: 15px; border-radius: 8px; margin: 20px 0;">
@@ -68,13 +105,13 @@ export async function POST(request: NextRequest) {
           
           <p style="color: #666; font-size: 12px;">
             ${locale === 'hu' 
-              ? 'Ez egy automatikus értesítés a HotelTrust.ai rendszerből.' 
-              : 'Dies ist eine automatische Benachrichtigung vom HotelTrust.ai System.'}
+              ? 'Ez egy automatikus értesítés a Trusthotel rendszerből.' 
+              : 'Dies ist eine automatische Benachrichtigung vom Trusthotel System.'}
           </p>
         `;
 
         await transporter.sendMail({
-          from: `HotelTrust.ai <${gmailUser}>`,
+          from: `Trusthotel <${gmailUser}>`,
           to: gmailUser, // Értesítés az adminnak
           subject: notificationSubject,
           html: notificationHtml,

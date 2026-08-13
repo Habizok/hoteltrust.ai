@@ -2,11 +2,11 @@
 
 import { useTranslations, useLocale } from 'next-intl';
 import { Link, usePathname } from '@/i18n/routing';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
 import { Check, Sparkles, MessageSquare, Globe, ArrowRight, Loader2, ChevronDown, CheckCircle2, XCircle, AlertTriangle, TrendingDown, Lightbulb, Copy, CheckCircle } from 'lucide-react';
 import WaitlistPopup from '@/components/WaitlistPopup';
+import { useRouter } from 'next/navigation';
 
 type AuditStep = 'hotel' | 'email' | 'processing' | 'result';
 
@@ -30,8 +30,12 @@ export default function FreeAuditPage() {
   const [expandedSampleReply, setExpandedSampleReply] = useState(false);
   const [hoveredPlatform, setHoveredPlatform] = useState<string | null>(null);
   const [showWaitlistPopup, setShowWaitlistPopup] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [waitlistCount, setWaitlistCount] = useState<number | undefined>(undefined);
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const router = useRouter();
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number | null>(null);
   
   // Mock audit results
   const [auditResults, setAuditResults] = useState<{
@@ -138,16 +142,30 @@ export default function FreeAuditPage() {
     setProgress(0);
     setCurrentProcessingStep(0);
 
-    // Progress animation
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return 90; // Hold at 90% until API responds
+    // Töröljük az előző intervalt, ha van
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+    }
+
+    // Progress animation - 30 másodperc alatt éri el a 100%-ot
+    startTimeRef.current = Date.now();
+    const duration = 30000; // 30 másodperc
+    
+    progressIntervalRef.current = setInterval(() => {
+      if (!startTimeRef.current) return;
+      
+      const elapsed = Date.now() - startTimeRef.current;
+      const newProgress = Math.min((elapsed / duration) * 100, 100);
+      
+      setProgress(newProgress);
+      
+      if (newProgress >= 100) {
+        if (progressIntervalRef.current) {
+          clearInterval(progressIntervalRef.current);
+          progressIntervalRef.current = null;
         }
-        return prev + 2;
-      });
-    }, 100);
+      }
+    }, 50); // 50ms-onként frissítünk a simább animációért
 
     // Change processing step text every 2 seconds
     const stepInterval = setInterval(() => {
@@ -175,7 +193,10 @@ export default function FreeAuditPage() {
         }),
       });
 
-      clearInterval(progressInterval);
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
       clearInterval(stepInterval);
 
       if (!response.ok) {
@@ -185,7 +206,7 @@ export default function FreeAuditPage() {
 
       const data = await response.json();
       
-      // Complete progress
+      // Complete progress (ha még nem ért el 100%-ra, akkor ugrik oda)
       setProgress(100);
 
       // Format results
@@ -234,7 +255,10 @@ export default function FreeAuditPage() {
         setCurrentStep('result');
       }, 500);
     } catch (error) {
-      clearInterval(progressInterval);
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
       clearInterval(stepInterval);
       setError(error instanceof Error ? error.message : (locale === 'hu' ? 'Hiba történt' : 'Ein Fehler ist aufgetreten'));
       setCurrentStep('email');
@@ -297,53 +321,108 @@ export default function FreeAuditPage() {
     },
   ];
 
+  // Unified color logic for all Trust Score elements (same as audit page)
   const getTrustScoreColor = (score: number) => {
-    if (score < 40) return 'text-red-500';
-    if (score < 70) return 'text-yellow-500';
-    return 'text-green-500';
+    if (score >= 70) return 'text-green-500';
+    if (score >= 50) return 'text-yellow-500';
+    return 'text-red-400';
   };
 
   const getTrustScoreBgColor = (score: number) => {
-    if (score < 40) return 'bg-red-500';
-    if (score < 70) return 'bg-yellow-500';
-    return 'bg-green-500';
+    if (score >= 70) return 'bg-green-500';
+    if (score >= 50) return 'bg-yellow-500';
+    return 'bg-red-400';
+  };
+
+  const getTrustScoreStrokeColor = (score: number) => {
+    if (score >= 70) return '#10b981'; // green-500
+    if (score >= 50) return '#f59e0b'; // yellow-500
+    return '#f87171'; // red-400 (halványabb piros)
   };
 
   return (
-    <div className="min-h-screen bg-background" id="top">
-      {/* Hero Section with Glassmorphism Card */}
-      <section className="relative overflow-hidden pt-16 sm:pt-20 pb-24 sm:pb-32 px-4 sm:px-6 lg:px-8">
-        {/* Background Image */}
+    <div className="min-h-screen bg-gradient-to-b from-white via-purple-50/30 to-blue-50/20" id="top">
+      {/* Hero Section with Light Theme */}
+      <section className="relative overflow-hidden pt-12 sm:pt-16 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8">
+        {/* Subtle gradient background */}
         <div className="absolute inset-0 z-0">
-          <Image
-            src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
-            alt="Alpesi osztrák hegyi táj"
-            fill
-            priority
-            className="object-cover"
-            quality={90}
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-purple-50/20 to-blue-50/30" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,0.08)_0%,transparent_50%)]" />
+          
+          {/* Animated blur orbs - Purple left, Gray right - Only in hero section */}
+          <motion.div
+            className="absolute top-10 left-10 w-[32rem] h-[32rem] bg-purple-400/70 rounded-full blur-3xl pointer-events-none"
+            animate={{
+              y: [0, -30, 0],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            style={{ zIndex: 1 }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(26,115,232,0.15)_0%,transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,175,55,0.1)_0%,transparent_50%)] blur-3xl" />
+          <motion.div
+            className="absolute top-10 right-10 w-[36rem] h-[36rem] bg-gray-400/70 rounded-full blur-3xl pointer-events-none"
+            animate={{
+              y: [0, 30, 0],
+            }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 0.3,
+            }}
+            style={{ zIndex: 1 }}
+          />
         </div>
         
-        <div className="relative z-10 max-w-7xl mx-auto">
+        <div className="relative z-10 max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center max-w-4xl mx-auto mb-8"
+            className="text-center mb-8"
           >
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-balance mb-4 sm:mb-6 text-white drop-shadow-lg px-2" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3)' }}>
-              {t('hero.title')}
+            {/* Badge */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 rounded-full mb-6 shadow-sm"
+            >
+              <Sparkles className="w-4 h-4 text-purple-600" />
+              <span className="text-sm font-semibold text-purple-700">
+                {locale === 'hu' ? 'Ingyenes & 1 perc alatt' : 'Kostenlos & in 1 Minute'}
+              </span>
+            </motion.div>
+            
+            {/* Main Title */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-balance mb-6 text-gray-900 leading-tight">
+              {locale === 'hu' ? (
+                <>
+                  Hogyan látja a{' '}
+                  <span className="text-blue-600">mesterséges intelligencia</span>{' '}
+                  a szállodádat?
+                </>
+              ) : (
+                <>
+                  Wie sieht die{' '}
+                  <span className="text-blue-600">künstliche Intelligenz</span>{' '}
+                  Ihr Hotel?
+                </>
+              )}
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-white/90 mb-8 max-w-2xl mx-auto drop-shadow-md px-4" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-              {t('hero.description')}
+            
+            {/* Subtitle */}
+            <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              {locale === 'hu' 
+                ? 'Ingyenes 1 perces AI elemzés, hogy megtudd, mit mond a mesterséges intelligencia a hotelekről.'
+                : 'Kostenlose 1-minütige KI-Analyse, um herauszufinden, was die künstliche Intelligenz über Hotels sagt.'}
             </p>
           </motion.div>
 
-          {/* Glassmorphism Card with Stepper UI */}
+          {/* White Card with Stepper UI */}
           <motion.div
             id="hero-form"
             initial={{ opacity: 0, y: 20 }}
@@ -351,48 +430,65 @@ export default function FreeAuditPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="max-w-2xl mx-auto"
           >
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl p-6 sm:p-8 md:p-10">
-              {/* Progress Stepper */}
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-8 md:p-10">
+              {/* Progress Stepper - Light Theme */}
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                    currentStep === 'hotel' ? 'bg-primary text-white' : 
-                    ['email', 'processing', 'result'].includes(currentStep) ? 'bg-primary text-white' : 
-                    'bg-white/20 text-white/60'
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+                    currentStep === 'hotel' ? 'bg-purple-700 text-white' : 
+                    ['email', 'processing', 'result'].includes(currentStep) ? 'bg-purple-700 text-white' : 
+                    'bg-gray-200 text-gray-500'
                   }`}>
-                    {['email', 'processing', 'result'].includes(currentStep) ? <Check className="w-4 h-4" /> : '1'}
+                    {['email', 'processing', 'result'].includes(currentStep) ? <Check className="w-5 h-5" /> : '1'}
                   </div>
-                  <span className="text-sm font-medium text-white hidden sm:inline">{t('form.step1')}</span>
+                  <span className={`text-sm font-medium hidden sm:inline ${
+                    currentStep === 'hotel' ? 'text-gray-900' : 
+                    ['email', 'processing', 'result'].includes(currentStep) ? 'text-gray-900' : 
+                    'text-gray-500'
+                  }`}>
+                    {locale === 'hu' ? 'Adatok' : 'Daten'}
+                  </span>
                 </div>
-                <div className="flex-1 h-0.5 mx-2 bg-white/20">
+                <div className="flex-1 h-0.5 mx-2 bg-gray-200">
                   <div className={`h-full transition-all duration-500 ${
-                    ['email', 'processing', 'result'].includes(currentStep) ? 'bg-primary w-full' : 'bg-transparent w-0'
+                    ['email', 'processing', 'result'].includes(currentStep) ? 'bg-purple-700 w-full' : 'bg-transparent w-0'
                   }`} />
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                    currentStep === 'email' ? 'bg-primary text-white' : 
-                    ['processing', 'result'].includes(currentStep) ? 'bg-primary text-white' : 
-                    'bg-white/20 text-white/60'
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+                    currentStep === 'email' ? 'bg-purple-700 text-white' : 
+                    ['processing', 'result'].includes(currentStep) ? 'bg-purple-700 text-white' : 
+                    'bg-gray-200 text-gray-500'
                   }`}>
-                    {['processing', 'result'].includes(currentStep) ? <Check className="w-4 h-4" /> : '2'}
+                    {['processing', 'result'].includes(currentStep) ? <Check className="w-5 h-5" /> : '2'}
                   </div>
-                  <span className="text-sm font-medium text-white hidden sm:inline">{t('form.step2')}</span>
+                  <span className={`text-sm font-medium hidden sm:inline ${
+                    currentStep === 'email' ? 'text-gray-900' : 
+                    ['processing', 'result'].includes(currentStep) ? 'text-gray-900' : 
+                    'text-gray-500'
+                  }`}>
+                    {locale === 'hu' ? 'Elemzés' : 'Analyse'}
+                  </span>
                 </div>
-                <div className="flex-1 h-0.5 mx-2 bg-white/20">
+                <div className="flex-1 h-0.5 mx-2 bg-gray-200">
                   <div className={`h-full transition-all duration-500 ${
-                    ['processing', 'result'].includes(currentStep) ? 'bg-primary w-full' : 'bg-transparent w-0'
+                    ['processing', 'result'].includes(currentStep) ? 'bg-purple-700 w-full' : 'bg-transparent w-0'
                   }`} />
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                    currentStep === 'processing' ? 'bg-primary text-white' : 
-                    currentStep === 'result' ? 'bg-green-500 text-white' : 
-                    'bg-white/20 text-white/60'
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+                    currentStep === 'processing' ? 'bg-purple-700 text-white' : 
+                    currentStep === 'result' ? 'bg-purple-700 text-white' : 
+                    'bg-gray-200 text-gray-500'
                   }`}>
-                    {currentStep === 'result' ? <Check className="w-4 h-4" /> : '3'}
+                    {currentStep === 'result' ? <Check className="w-5 h-5" /> : '3'}
                   </div>
-                  <span className="text-sm font-medium text-white hidden sm:inline">{t('form.step3')}</span>
+                  <span className={`text-sm font-medium hidden sm:inline ${
+                    ['processing', 'result'].includes(currentStep) ? 'text-gray-900' : 
+                    'text-gray-500'
+                  }`}>
+                    {locale === 'hu' ? 'Eredmény' : 'Ergebnis'}
+                  </span>
                 </div>
               </div>
 
@@ -408,8 +504,8 @@ export default function FreeAuditPage() {
                   >
                     <div className="space-y-6">
                       <div>
-                        <label className="block text-white/90 text-sm font-medium mb-2">
-                          {t('form.hotelName')}
+                        <label className="block text-gray-700 text-sm font-medium mb-2">
+                          {locale === 'hu' ? 'Hotel neve' : 'Hotelname'}
                         </label>
                         <div className="relative">
                           <input
@@ -434,8 +530,8 @@ export default function FreeAuditPage() {
                                 handleHotelNext();
                               }
                             }}
-                            placeholder={t('form.hotelNamePlaceholder')}
-                            className="w-full px-6 py-4 rounded-lg border border-white/30 bg-white/20 backdrop-blur-sm text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                            placeholder={locale === 'hu' ? 'Kezdje el gépelni a szálloda nevét...' : 'Beginnen Sie mit der Eingabe des Hotelnamens...'}
+                            className="w-full px-6 py-4 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                           />
                           {/* Google Places Autocomplete suggestions */}
                           {showSuggestions && autocompleteSuggestions.length > 0 && (
@@ -469,9 +565,9 @@ export default function FreeAuditPage() {
                         type="button"
                         onClick={handleHotelNext}
                         disabled={!hotelName.trim()}
-                        className="w-full bg-white text-primary px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white/90 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
                       >
-                        {t('form.next')}
+                        {locale === 'hu' ? 'Tovább az elemzéshez' : 'Weiter zur Analyse'}
                         <ArrowRight className="w-5 h-5" />
                       </button>
                     </div>
@@ -488,26 +584,26 @@ export default function FreeAuditPage() {
                   >
                     <form onSubmit={handleEmailSubmit} className="space-y-6">
                       <div>
-                        <label className="block text-white/90 text-sm font-medium mb-2">
-                          {t('form.emailLabel')}
+                        <label className="block text-gray-700 text-sm font-medium mb-2">
+                          {locale === 'hu' ? 'E-mail cím' : 'E-Mail-Adresse'}
                         </label>
                         <input
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          placeholder={t('form.emailPlaceholder')}
+                          placeholder={locale === 'hu' ? 'email@pelda.hu' : 'email@beispiel.de'}
                           required
-                          className="w-full px-6 py-4 rounded-lg border border-white/30 bg-white/20 backdrop-blur-sm text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                          className="w-full px-6 py-4 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                         />
                       </div>
                       {error && (
-                        <p className="text-red-300 text-sm">{error}</p>
+                        <p className="text-red-600 text-sm">{error}</p>
                       )}
                       <button
                         type="submit"
-                        className="w-full bg-white text-primary px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white/90 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg"
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg"
                       >
-                        {t('form.submit')}
+                        {locale === 'hu' ? 'AI-Audit indítása' : 'KI-Analyse starten'}
                         <ArrowRight className="w-5 h-5" />
                       </button>
                     </form>
@@ -531,7 +627,7 @@ export default function FreeAuditPage() {
                             cx="64"
                             cy="64"
                             r="56"
-                            stroke="rgba(255,255,255,0.2)"
+                            stroke="#e5e7eb"
                             strokeWidth="8"
                             fill="none"
                           />
@@ -539,7 +635,7 @@ export default function FreeAuditPage() {
                             cx="64"
                             cy="64"
                             r="56"
-                            stroke="#1A73E8"
+                            stroke="url(#gradient)"
                             strokeWidth="8"
                             fill="none"
                             strokeLinecap="round"
@@ -548,9 +644,15 @@ export default function FreeAuditPage() {
                             animate={{ strokeDashoffset: 2 * Math.PI * 56 * (1 - progress / 100) }}
                             transition={{ duration: 0.3 }}
                           />
+                          <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                              <stop offset="0%" stopColor="#2563eb" />
+                              <stop offset="100%" stopColor="#9333ea" />
+                            </linearGradient>
+                          </defs>
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-2xl font-bold text-white">{progress}%</span>
+                          <span className="text-2xl font-bold text-gray-900">{Math.round(progress)}%</span>
                         </div>
                       </div>
                       
@@ -560,13 +662,13 @@ export default function FreeAuditPage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="text-white/90 text-lg font-medium mt-6 text-center"
+                        className="text-gray-700 text-lg font-medium mt-6 text-center"
                       >
                         {processingSteps[currentProcessingStep]}
                       </motion.p>
 
                       {/* Live Log */}
-                      <div className="w-full bg-black/30 rounded-lg p-4 font-mono text-xs text-green-400 max-h-32 overflow-y-auto">
+                      <div className="w-full bg-gray-50 rounded-lg p-4 font-mono text-xs text-gray-600 max-h-32 overflow-y-auto border border-gray-200">
                         <div className="space-y-1">
                           {currentProcessingStep >= 0 && (
                             <div className="opacity-80">{'>'} {locale === 'hu' ? 'Kapcsolódás a Google Maps adatbázisához...' : 'Verbinde mit Google Maps Datenbank...'}</div>
@@ -581,7 +683,7 @@ export default function FreeAuditPage() {
                             <div className="opacity-80">{'>'} {locale === 'hu' ? 'Láthatósági pontszám kalkulálása...' : 'Berechne Sichtbarkeits-Score...'}</div>
                           )}
                           {currentProcessingStep >= 4 && (
-                            <div className="text-green-400">{'>'} {locale === 'hu' ? 'Kész!' : 'Fertig!'}</div>
+                            <div className="text-green-600">{'>'} {locale === 'hu' ? 'Kész!' : 'Fertig!'}</div>
                           )}
                         </div>
                       </div>
@@ -599,7 +701,7 @@ export default function FreeAuditPage() {
                   >
                     {/* Trust Score - Enhanced Visualization with Circular Progress */}
                     <div className="text-center">
-                      <h3 className="text-white/90 text-sm font-medium mb-4">{t('result.trustScore')}</h3>
+                      <h3 className="text-gray-700 text-sm font-medium mb-4">{t('result.trustScore')}</h3>
                       <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
                         {/* Circular Progress */}
                         <div className="relative w-32 h-32 md:w-40 md:h-40">
@@ -610,7 +712,7 @@ export default function FreeAuditPage() {
                               cy="50%"
                               r="45%"
                               fill="none"
-                              stroke="rgba(255, 255, 255, 0.1)"
+                              stroke="#e5e7eb"
                               strokeWidth="8"
                             />
                             {/* Progress circle */}
@@ -619,7 +721,7 @@ export default function FreeAuditPage() {
                               cy="50%"
                               r="45%"
                               fill="none"
-                              stroke={auditResults.trustScore >= 70 ? '#10b981' : auditResults.trustScore >= 50 ? '#f59e0b' : '#ef4444'}
+                              stroke={getTrustScoreStrokeColor(auditResults.trustScore)}
                               strokeWidth="8"
                               strokeLinecap="round"
                               initial={{ pathLength: 0 }}
@@ -637,13 +739,13 @@ export default function FreeAuditPage() {
                             >
                               {auditResults.trustScore}
                             </motion.div>
-                            <div className="text-white/60 text-xs md:text-sm">/ 100</div>
+                            <div className="text-gray-500 text-xs md:text-sm">/ 100</div>
                           </div>
                         </div>
                         
                         {/* Linear Progress Bar (for mobile clarity) */}
                         <div className="w-full md:w-64">
-                          <div className="w-full bg-white/20 rounded-full h-4 overflow-hidden">
+                          <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${auditResults.trustScore}%` }}
@@ -651,7 +753,7 @@ export default function FreeAuditPage() {
                               className={`h-full ${getTrustScoreBgColor(auditResults.trustScore)}`}
                             />
                           </div>
-                          <div className="mt-2 text-white/70 text-xs text-center">
+                          <div className="mt-2 text-gray-600 text-xs text-center">
                             {auditResults.trustScore >= 70 
                               ? (locale === 'hu' ? 'Kiváló' : 'Ausgezeichnet')
                               : auditResults.trustScore >= 50
@@ -663,32 +765,32 @@ export default function FreeAuditPage() {
                     </div>
                     
                     {/* Social Proof Badge */}
-                    <div className="bg-primary/10 backdrop-blur-sm rounded-lg p-4 border border-primary/30 flex items-center justify-center gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-green-400" />
-                      <span className="text-white font-medium text-sm">
+                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-gray-200 flex items-center justify-center gap-2">
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      <span className="text-gray-700 font-medium text-sm">
                         {locale === 'hu' 
-                          ? 'Már 150+ hotel használja a HotelTrust.ai-t'
-                          : 'Bereits 150+ Hotels nutzen HotelTrust.ai'}
+                          ? 'Már 150+ hotel használja a Trusthotel-t'
+                          : 'Bereits 150+ Hotels nutzen Trusthotel'}
                       </span>
                     </div>
 
                     {/* Revenue Loss Badge */}
                     {auditResults.revenueLoss && (
-                      <div className="bg-red-500/20 border-2 border-red-400/50 rounded-lg p-4 flex items-center gap-3">
-                        <TrendingDown className="w-6 h-6 text-red-400 flex-shrink-0" />
+                      <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 flex items-center gap-3">
+                        <TrendingDown className="w-6 h-6 text-red-500 flex-shrink-0" />
                         <div>
-                          <div className="text-white font-semibold text-sm mb-1">{t('result.revenueLoss')}</div>
-                          <div className="text-red-300 text-2xl font-bold">{auditResults.revenueLoss}</div>
+                          <div className="text-gray-700 font-semibold text-sm mb-1">{t('result.revenueLoss')}</div>
+                          <div className="text-red-600 text-2xl font-bold">{auditResults.revenueLoss}</div>
                         </div>
                       </div>
                     )}
 
                     {/* Critical Issues - Expandable with Staggered Animation */}
                     {auditResults.criticalIssues && auditResults.criticalIssues.length > 0 && (
-                      <div className="bg-red-500/10 backdrop-blur-sm rounded-lg p-5 border-2 border-red-400/30">
+                      <div className="bg-red-50 rounded-lg p-5 border-2 border-red-200">
                         <div className="flex items-center gap-2 mb-4">
-                          <AlertTriangle className="w-5 h-5 text-red-400" />
-                          <h4 className="text-white font-semibold text-base">{t('result.criticalIssues')}</h4>
+                          <AlertTriangle className="w-5 h-5 text-red-500" />
+                          <h4 className="text-gray-900 font-semibold text-base">{t('result.criticalIssues')}</h4>
                         </div>
                         <ul className="space-y-3">
                           {auditResults.criticalIssues.map((issue, idx) => {
@@ -700,7 +802,7 @@ export default function FreeAuditPage() {
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ duration: 0.5, delay: idx * 0.15 }}
                                 layout={false}
-                                className="bg-red-500/5 rounded-lg p-3 border border-red-400/20"
+                                className="bg-white rounded-lg p-3 border border-red-200"
                               >
                                 <button
                                   onClick={() => {
@@ -714,27 +816,27 @@ export default function FreeAuditPage() {
                                   }}
                                   className="w-full flex items-start gap-3 text-left"
                                 >
-                                  <XCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                                  <XCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
                                   <div className="flex-1">
-                                    <span className="text-white font-medium text-sm leading-relaxed block">{issue}</span>
+                                    <span className="text-gray-900 font-medium text-sm leading-relaxed block">{issue}</span>
                                     {isExpanded && (
                                       <motion.div
                                         initial={{ opacity: 0, height: 0 }}
                                         animate={{ opacity: 1, height: 'auto' }}
                                         exit={{ opacity: 0, height: 0 }}
-                                        className="text-white/70 text-xs mt-2 leading-relaxed space-y-1"
+                                        className="text-gray-600 text-xs mt-2 leading-relaxed space-y-1"
                                       >
                                         <p>{t('result.issueTip')}</p>
                                         {/* Show specific tip based on issue content */}
                                         {issue.includes('helyen szerepel') && (
-                                          <p className="text-white/80 font-medium mt-2">
+                                          <p className="text-gray-700 font-medium mt-2">
                                             {locale === 'hu' 
                                               ? '💡 Első helyre kerüléshez: válaszolj minden véleményre 24 órán belül, növeld a pozitív vélemények arányát, és add hozzá a strukturált adatokat (Schema.org) a weboldalhoz.'
                                               : '💡 Um auf Platz 1 zu kommen: Beantworten Sie alle Bewertungen innerhalb von 24 Stunden, erhöhen Sie den Anteil positiver Bewertungen und fügen Sie strukturierte Daten (Schema.org) zur Website hinzu.'}
                                           </p>
                                         )}
                                         {issue.includes('nem ajánlja') && (
-                                          <p className="text-white/80 font-medium mt-2">
+                                          <p className="text-gray-700 font-medium mt-2">
                                             {locale === 'hu'
                                               ? '💡 Az AI ajánlásokban való megjelenéshez: válaszolj a véleményekre, növeld az értékeléseket, és biztosítsd, hogy a weboldalad tartalmaz strukturált adatokat (Schema.org).'
                                               : '💡 Um in den KI-Empfehlungen zu erscheinen: Beantworten Sie Bewertungen, erhöhen Sie die Bewertungen und stellen Sie sicher, dass Ihre Website strukturierte Daten (Schema.org) enthält.'}
@@ -744,7 +846,7 @@ export default function FreeAuditPage() {
                                     )}
                                   </div>
                                   <ChevronDown
-                                    className={`w-4 h-4 text-red-400 flex-shrink-0 transition-transform ${
+                                    className={`w-4 h-4 text-red-500 flex-shrink-0 transition-transform ${
                                       isExpanded ? 'rotate-180' : ''
                                     }`}
                                   />
@@ -756,11 +858,11 @@ export default function FreeAuditPage() {
                       </div>
                     )}
 
-                    {/* Three Column Dashboard - Enhanced Mobile UX */}
+                    {/* Three Column Dashboard - Light Theme */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {/* AI Visibility - with Tooltip */}
-                      <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                        <h4 className="text-white font-semibold mb-3 text-sm">{t('result.aiVisibility')}</h4>
+                      <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <h4 className="text-gray-900 font-semibold mb-3 text-sm">{t('result.aiVisibility')}</h4>
                         <div className="space-y-3">
                           {auditResults.aiVisibility.map((item, idx) => (
                             <div 
@@ -769,11 +871,11 @@ export default function FreeAuditPage() {
                               onMouseEnter={() => setHoveredPlatform(item.platform)}
                               onMouseLeave={() => setHoveredPlatform(null)}
                             >
-                              <span className="text-white font-medium text-xs">{item.platform}</span>
+                              <span className="text-gray-700 font-medium text-xs">{item.platform}</span>
                               <div className="flex items-center gap-2 relative">
                                 {item.visible ? (
                                   <>
-                                    <span className="text-white/80 text-xs font-semibold">
+                                    <span className="text-gray-600 text-xs font-semibold">
                                       {item.position 
                                         ? (locale === 'hu' 
                                             ? `${item.position}. hely` 
@@ -785,31 +887,31 @@ export default function FreeAuditPage() {
                                         <span className="text-black text-[10px] font-bold">1</span>
                                       </div>
                                     ) : (
-                                      <CheckCircle2 className="w-4 h-4 text-green-400" />
+                                      <CheckCircle2 className="w-4 h-4 text-green-500" />
                                     )}
                                     {/* Tooltip */}
                                     {hoveredPlatform === item.platform && item.position && (
-                                      <div className="absolute right-0 top-6 z-10 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl border border-white/20 whitespace-nowrap">
+                                      <div className="absolute right-0 top-6 z-10 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl border border-gray-700 whitespace-nowrap">
                                         {locale === 'hu'
                                           ? `Átlagos pozíció ${item.position}. hely 10 különböző kérdés alapján (5 magyar + 5 német)`
                                           : `Durchschnittliche Position ${item.position}. Platz basierend auf 10 verschiedenen Fragen (5 ungarisch + 5 deutsch)`}
-                                        <div className="absolute -top-1 right-4 w-2 h-2 bg-gray-900 border-l border-t border-white/20 transform rotate-45"></div>
+                                        <div className="absolute -top-1 right-4 w-2 h-2 bg-gray-900 border-l border-t border-gray-700 transform rotate-45"></div>
                                       </div>
                                     )}
                                   </>
                                 ) : (
                                   <>
-                                    <span className="text-white/60 text-xs">
+                                    <span className="text-gray-500 text-xs">
                                       {locale === 'hu' ? 'Nem látható' : 'Nicht sichtbar'}
                                     </span>
-                                    <XCircle className="w-4 h-4 text-red-400" />
+                                    <XCircle className="w-4 h-4 text-red-500" />
                                     {/* Tooltip for not visible */}
                                     {hoveredPlatform === item.platform && (
-                                      <div className="absolute right-0 top-6 z-10 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl border border-white/20 whitespace-nowrap">
+                                      <div className="absolute right-0 top-6 z-10 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl border border-gray-700 whitespace-nowrap">
                                         {locale === 'hu'
                                           ? 'Az AI nem találta a hotelt a tesztelt kérdésekben'
                                           : 'Die KI hat das Hotel in den getesteten Fragen nicht gefunden'}
-                                        <div className="absolute -top-1 right-4 w-2 h-2 bg-gray-900 border-l border-t border-white/20 transform rotate-45"></div>
+                                        <div className="absolute -top-1 right-4 w-2 h-2 bg-gray-900 border-l border-t border-gray-700 transform rotate-45"></div>
                                       </div>
                                     )}
                                   </>
@@ -821,28 +923,28 @@ export default function FreeAuditPage() {
                       </div>
 
                       {/* Reputation */}
-                      <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                        <h4 className="text-white font-semibold mb-3 text-sm">{t('result.reputation')}</h4>
+                      <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <h4 className="text-gray-900 font-semibold mb-3 text-sm">{t('result.reputation')}</h4>
                         <div className="space-y-2">
                           {auditResults.unansweredReviews === 0 || (typeof auditResults.unansweredReviews === 'number' && auditResults.unansweredReviews === 0) ? (
-                            <div className="text-red-400 font-medium text-xs">
+                            <div className="text-red-600 font-medium text-xs">
                               {locale === 'hu' ? 'Egyetlen véleményt sem válaszoltál meg.' : 'Sie haben keine einzige Bewertung beantwortet.'}
                             </div>
                           ) : auditResults.totalReviews && auditResults.answeredReviews !== undefined ? (
                             <>
-                              <div className="text-white font-medium text-xs">
+                              <div className="text-gray-700 font-medium text-xs">
                                 {locale === 'hu' 
                                   ? `${auditResults.totalReviews} véleményből ${auditResults.answeredReviews}-öt válaszoltál meg.`
                                   : `Von ${auditResults.totalReviews} Bewertungen haben Sie ${auditResults.answeredReviews} beantwortet.`}
                               </div>
-                              <div className="text-red-400 font-medium text-xs">
+                              <div className="text-red-600 font-medium text-xs">
                                 {locale === 'hu'
                                   ? '⚠️ Ez nem jó! Az AI ezt alacsony szolgáltatási minőségként értékeli, és kevesebbszer fogja ajánlani a szállodádat.'
                                   : '⚠️ Das ist nicht gut! Die KI bewertet dies als niedrige Servicequalität und wird Ihr Hotel seltener empfehlen.'}
                               </div>
                             </>
                           ) : (
-                            <div className="text-white font-medium text-xs">
+                            <div className="text-gray-700 font-medium text-xs">
                               {typeof auditResults.unansweredReviews === 'string' 
                                 ? `${auditResults.unansweredReviews} ${t('result.unansweredReviews')}`
                                 : `${auditResults.unansweredReviews} ${t('result.unansweredReviews')}`}
@@ -852,9 +954,9 @@ export default function FreeAuditPage() {
                       </div>
 
                       {/* Sample Reply with Copy Button - Expandable */}
-                      <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                      <div className="bg-white rounded-lg p-4 border border-gray-200">
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-green-400 font-semibold text-xs">{t('result.sampleReply')}</h4>
+                          <h4 className="text-green-600 font-semibold text-xs">{t('result.sampleReply')}</h4>
                           <div className="flex items-center gap-2">
                             <button
                               onClick={async () => {
@@ -862,19 +964,19 @@ export default function FreeAuditPage() {
                                 setCopiedReply(true);
                                 setTimeout(() => setCopiedReply(false), 2000);
                               }}
-                              className="p-1.5 rounded hover:bg-white/10 transition-colors"
+                              className="p-1.5 rounded hover:bg-gray-100 transition-colors"
                               title={t('result.copyReply')}
                             >
                               {copiedReply ? (
-                                <CheckCircle className="w-4 h-4 text-green-400" />
+                                <CheckCircle className="w-4 h-4 text-green-500" />
                               ) : (
-                                <Copy className="w-4 h-4 text-white/60" />
+                                <Copy className="w-4 h-4 text-gray-500" />
                               )}
                             </button>
                             {auditResults.sampleReply.length > 150 && (
                               <button
                                 onClick={() => setExpandedSampleReply(!expandedSampleReply)}
-                                className="text-white/60 hover:text-white text-xs flex items-center gap-1"
+                                className="text-gray-600 hover:text-gray-900 text-xs flex items-center gap-1"
                               >
                                 {expandedSampleReply 
                                   ? (locale === 'hu' ? 'Összecsukás' : 'Weniger')
@@ -884,7 +986,7 @@ export default function FreeAuditPage() {
                             )}
                           </div>
                         </div>
-                        <p className={`text-white font-medium text-xs leading-relaxed ${expandedSampleReply ? '' : 'line-clamp-4'}`}>
+                        <p className={`text-gray-700 font-medium text-xs leading-relaxed ${expandedSampleReply ? '' : 'line-clamp-4'}`}>
                           {auditResults.sampleReply}
                         </p>
                       </div>
@@ -892,16 +994,16 @@ export default function FreeAuditPage() {
 
                     {/* Recommendations */}
                     {auditResults.recommendations && auditResults.recommendations.length > 0 && (
-                      <div className="bg-primary/10 backdrop-blur-sm rounded-lg p-5 border-2 border-primary/30">
+                      <div className="bg-white rounded-lg p-5 border border-gray-200">
                         <div className="flex items-center gap-2 mb-4">
-                          <Lightbulb className="w-5 h-5 text-green-400" />
-                          <h4 className="text-white font-semibold text-base">{t('result.recommendations')}</h4>
+                          <Lightbulb className="w-5 h-5 text-green-500" />
+                          <h4 className="text-gray-900 font-semibold text-base">{t('result.recommendations')}</h4>
                         </div>
                         <ul className="space-y-3">
                           {auditResults.recommendations.map((rec, idx) => (
                             <li key={idx} className="flex items-start gap-3">
-                              <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                              <span className="text-white font-medium text-sm leading-relaxed">{rec}</span>
+                              <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                              <span className="text-gray-700 font-medium text-sm leading-relaxed">{rec}</span>
                             </li>
                           ))}
                         </ul>
@@ -935,8 +1037,14 @@ export default function FreeAuditPage() {
                               const countData = await countResponse.json();
                               setWaitlistCount(countData.count);
                             }
-                            // Show popup
-                            setShowWaitlistPopup(true);
+                            
+                            // Show success message modal (same as audit/[id] page)
+                            setShowSuccessMessage(true);
+                            
+                            // Close modal after 3 seconds (we're already on free-audit page, no redirect needed)
+                            setTimeout(() => {
+                              setShowSuccessMessage(false);
+                            }, 3000);
                           } else {
                             setError(data.error || (locale === 'hu' ? 'Hiba történt a feliratkozás során' : 'Fehler bei der Anmeldung'));
                           }
@@ -947,12 +1055,12 @@ export default function FreeAuditPage() {
                         }
                       }}
                       disabled={isSubscribing || !email || !hotelName}
-                      className="w-full bg-white text-primary px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white/90 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                       animate={{
                         boxShadow: [
-                          '0 10px 25px rgba(255, 255, 255, 0.2)',
-                          '0 10px 35px rgba(26, 115, 232, 0.4)',
-                          '0 10px 25px rgba(255, 255, 255, 0.2)',
+                          '0 10px 25px rgba(37, 99, 235, 0.3)',
+                          '0 10px 35px rgba(147, 51, 234, 0.4)',
+                          '0 10px 25px rgba(37, 99, 235, 0.3)',
                         ],
                       }}
                       transition={{
@@ -1226,13 +1334,94 @@ export default function FreeAuditPage() {
         </div>
       </section>
 
-      {/* Footer CTA */}
-      <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 bg-primary text-primary-foreground">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6">
-            {t('hero.cta')}
-          </h2>
-          <button
+      {/* Footer CTA - Light Theme */}
+      <section className="relative overflow-hidden py-16 sm:py-20 md:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white via-purple-50/30 to-blue-50/20">
+        {/* Subtle gradient background with animated blur orbs */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-purple-50/20 to-blue-50/30" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,0.08)_0%,transparent_50%)]" />
+          
+          {/* Animated blur orbs */}
+          <motion.div
+            className="absolute top-20 left-10 w-64 h-64 bg-purple-200/30 rounded-full blur-3xl"
+            animate={{
+              y: [0, -20, 0],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          <motion.div
+            className="absolute bottom-20 right-10 w-80 h-80 bg-blue-200/30 rounded-full blur-3xl"
+            animate={{
+              y: [0, 20, 0],
+            }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 0.5,
+            }}
+          />
+        </div>
+        
+        <div className="relative z-10 max-w-4xl mx-auto text-center">
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4 }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 rounded-full mb-6 shadow-sm"
+          >
+            <Sparkles className="w-4 h-4 text-purple-600" />
+            <span className="text-sm font-semibold text-purple-700">
+              {locale === 'hu' ? 'Ingyenes & 1 perc alatt' : 'Kostenlos & in 1 Minute'}
+            </span>
+          </motion.div>
+          
+          {/* Main Title */}
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-balance mb-4 sm:mb-6 text-gray-900 leading-tight"
+          >
+            {locale === 'hu' ? (
+              <>
+                Kezdje el az ingyenes auditat{' '}
+                <span className="text-blue-600">most!</span>
+              </>
+            ) : (
+              <>
+                Starten Sie das kostenlose Audit{' '}
+                <span className="text-blue-600">jetzt!</span>
+              </>
+            )}
+          </motion.h2>
+          
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-lg sm:text-xl text-gray-600 mb-8 max-w-2xl mx-auto"
+          >
+            {locale === 'hu' 
+              ? 'Fedezze fel, hogyan látja a mesterséges intelligencia a szállodáját, és mit tehet a jobb eredményekért.'
+              : 'Entdecken Sie, wie die künstliche Intelligenz Ihr Hotel sieht und was Sie für bessere Ergebnisse tun können.'}
+          </motion.p>
+          
+          {/* CTA Button */}
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
             onClick={(e) => {
               e.preventDefault();
               const heroSection = document.getElementById('hero-form');
@@ -1243,51 +1432,91 @@ export default function FreeAuditPage() {
                 });
               }
             }}
-            className="inline-block mt-4 sm:mt-6 bg-white text-primary px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg hover:bg-white/90 transition-all transform hover:scale-105 shadow-lg cursor-pointer"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
           >
-            {t('form.submit')}
-          </button>
+            {locale === 'hu' ? 'AI-Audit indítása' : 'KI-Analyse starten'}
+            <ArrowRight className="w-5 h-5" />
+          </motion.button>
         </div>
-        <div className="max-w-4xl mx-auto mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-white/20">
-          <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 text-xs sm:text-sm text-white/70">
-            <a href={`/${locale}/impressum`} className="hover:text-white transition-colors">
-              {t('footer.impressum')}
-            </a>
-            <a href={`/${locale}/datenschutz`} className="hover:text-white transition-colors">
-              {t('footer.datenschutz')}
-            </a>
-            <span className="text-white/30">|</span>
+      </section>
+
+      {/* Success Message Modal */}
+      {showSuccessMessage && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowSuccessMessage(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="w-10 h-10 text-green-500" />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-center text-gray-900 mb-4">
+              {locale === 'hu' ? 'Sikeres feliratkozás!' : 'Erfolgreich angemeldet!'}
+            </h2>
+            <p className="text-gray-600 text-center mb-6">
+              {locale === 'hu' 
+                ? 'Köszönjük a feliratkozást!' 
+                : 'Vielen Dank für Ihre Anmeldung!'}
+            </p>
+            <button
+              onClick={() => {
+                setShowSuccessMessage(false);
+              }}
+              className="w-full bg-primary text-white py-3 px-6 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
+            >
+              {locale === 'hu' ? 'Rendben' : 'OK'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 text-xs sm:text-sm text-gray-600">
+            {/* Impressum és Datenschutz */}
+            <Link href={`/${locale}/impressum`} className="hover:text-gray-900 transition-colors">
+              {locale === 'hu' ? 'Impresszum' : 'Impressum'}
+            </Link>
+            <Link href={`/${locale}/datenschutz`} className="hover:text-gray-900 transition-colors">
+              {locale === 'hu' ? 'Adatvédelem' : 'Datenschutz'}
+            </Link>
+            <span className="text-gray-300">|</span>
+            {/* Nyelvválasztó */}
             <div className="flex items-center gap-1.5 sm:gap-2">
               <Link
                 href={pathname}
                 locale="hu"
                 className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded transition-all ${
                   locale === 'hu' 
-                    ? 'text-white font-semibold bg-white/20' 
-                    : 'hover:text-white hover:bg-white/10'
+                    ? 'text-purple-700 font-semibold bg-purple-100' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
                 HU
               </Link>
-              <span className="text-white/30">/</span>
+              <span className="text-gray-300">/</span>
               <Link
                 href={pathname}
                 locale="de"
                 className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded transition-all ${
                   locale === 'de' 
-                    ? 'text-white font-semibold bg-white/20' 
-                    : 'hover:text-white hover:bg-white/10'
+                    ? 'text-purple-700 font-semibold bg-purple-100' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
                 DE
               </Link>
             </div>
           </div>
-          <div className="mt-6 sm:mt-8 text-center text-[10px] sm:text-xs text-white/50">
-            {t('footer.copyright')}
+          {/* Copyright */}
+          <div className="mt-6 sm:mt-8 text-center text-[10px] sm:text-xs text-gray-500">
+            {locale === 'hu' 
+              ? '© 2025 HotelTrust · Minden jog fenntartva.'
+              : '© 2025 HotelTrust · Alle Rechte vorbehalten.'}
           </div>
         </div>
-      </section>
+      </footer>
 
       {/* Waitlist Popup */}
       <WaitlistPopup

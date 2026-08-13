@@ -97,7 +97,16 @@ export default function AnalyticsTracker() {
           clicks: clicksRef.current,
           pagesViewed: pagesViewedRef.current,
         }),
-      }).catch(err => console.error('Analytics error:', err));
+      })
+        .then(response => {
+          if (!response.ok) {
+            console.warn('Analytics API returned non-OK status:', response.status);
+          }
+        })
+        .catch(err => {
+          // Silently fail - analytics should not break the app
+          console.warn('Analytics error (non-critical):', err);
+        });
     };
 
     const interval = setInterval(sendAnalytics, 30000); // Every 30 seconds
@@ -109,13 +118,40 @@ export default function AnalyticsTracker() {
       window.removeEventListener('beforeunload', sendAnalytics);
       document.removeEventListener('click', handleClick);
       
-      // Update last page view duration before leaving
+      // Update last page view duration before leaving (sync only, no async fetch in cleanup)
       if (pagesViewedRef.current.length > 0) {
         const lastPage = pagesViewedRef.current[pagesViewedRef.current.length - 1];
         lastPage.duration = Math.floor((Date.now() - pageStartTimeRef.current) / 1000);
       }
       
-      sendAnalytics();
+      // Send analytics before leaving (using sendBeacon for reliability, no async fetch)
+      try {
+        const duration = Math.floor((Date.now() - startTimeRef.current) / 1000);
+        const deviceInfo = detectDevice(navigator.userAgent);
+        
+        const analyticsData = JSON.stringify({
+          sessionId: sessionIdRef.current,
+          country: countryRef.current,
+          countryCode: countryCodeRef.current,
+          page: pathname,
+          duration,
+          userAgent: navigator.userAgent,
+          referrer: document.referrer,
+          device: deviceInfo.device,
+          browser: deviceInfo.browser,
+          os: deviceInfo.os,
+          clicks: clicksRef.current,
+          pagesViewed: pagesViewedRef.current,
+        });
+        
+        // Use sendBeacon for cleanup - it's more reliable and doesn't block
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon('/api/analytics', analyticsData);
+        }
+      } catch (err) {
+        // Silently fail in cleanup
+        console.warn('Analytics cleanup error (non-critical):', err);
+      }
     };
   }, [pathname]);
 

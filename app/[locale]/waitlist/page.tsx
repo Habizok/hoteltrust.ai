@@ -4,7 +4,6 @@ import { useTranslations, useLocale } from 'next-intl';
 import { Link, usePathname } from '@/i18n/routing';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import { Check, Sparkles, MessageSquare, Globe, ArrowRight, Loader2, ChevronDown } from 'lucide-react';
 import WaitlistPopup from '@/components/WaitlistPopup';
 import { useEffect } from 'react';
@@ -149,44 +148,87 @@ export default function WaitlistPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background" id="top">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-16 sm:pt-20 pb-24 sm:pb-32 px-4 sm:px-6 lg:px-8">
-        {/* Background Image */}
+    <div className="min-h-screen bg-gradient-to-b from-white via-purple-50/30 to-blue-50/20" id="top">
+      {/* Hero Section with Light Theme */}
+      <section className="relative overflow-hidden pt-12 sm:pt-16 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8">
+        {/* Subtle gradient background */}
         <div className="absolute inset-0 z-0">
-          <Image
-            src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
-            alt="Alpesi osztrák hegyi táj"
-            fill
-            priority
-            className="object-cover"
-            quality={90}
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-purple-50/20 to-blue-50/30" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,0.08)_0%,transparent_50%)]" />
+          
+          {/* Animated blur orbs - Purple left, Gray right - Only in hero section */}
+          <motion.div
+            className="absolute top-10 left-10 w-[32rem] h-[32rem] bg-purple-400/70 rounded-full blur-3xl pointer-events-none"
+            animate={{
+              y: [0, -30, 0],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            style={{ zIndex: 1 }}
           />
-          {/* Mesh gradient overlay for depth */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(26,115,232,0.15)_0%,transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,175,55,0.1)_0%,transparent_50%)] blur-3xl" />
+          <motion.div
+            className="absolute top-10 right-10 w-[36rem] h-[36rem] bg-gray-400/70 rounded-full blur-3xl pointer-events-none"
+            animate={{
+              y: [0, 30, 0],
+            }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 0.3,
+            }}
+            style={{ zIndex: 1 }}
+          />
         </div>
         
-        <div className="relative z-10 max-w-7xl mx-auto">
+        <div className="relative z-10 max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center max-w-4xl mx-auto"
+            className="text-center mb-8"
           >
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-balance mb-4 sm:mb-6 text-white drop-shadow-lg px-2" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3)' }}>
+            {/* Badge */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 rounded-full mb-6 shadow-sm"
+            >
+              <Sparkles className="w-4 h-4 text-purple-600" />
+              <span className="text-sm font-semibold text-purple-700">
+                {locale === 'hu' ? 'Korai hozzáférés' : 'Früher Zugang'}
+              </span>
+            </motion.div>
+            
+            {/* Main Title */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-balance mb-6 text-gray-900 leading-tight">
               {t('hero.title')}
             </h1>
-            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold mb-3 sm:mb-4 text-white drop-shadow-md px-2" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3)' }}>
+            
+            {/* Subtitle */}
+            <p className="text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4 text-gray-700">
               {t('hero.subtitle')}
             </p>
-            <p className="text-base sm:text-lg md:text-xl text-white/90 mb-8 sm:mb-12 max-w-2xl mx-auto drop-shadow-md px-4" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+            
+            {/* Description */}
+            <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
               {t('hero.description')}
             </p>
+          </motion.div>
 
-            {/* CTA Form – ugyanaz a submit logika, mint a debug oldalon */}
-            <div id="hero-form" className="max-w-md mx-auto">
+          {/* White Card with Form */}
+          <motion.div
+            id="hero-form"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="max-w-md mx-auto"
+          >
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-8">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <input
@@ -195,7 +237,7 @@ export default function WaitlistPage() {
                     onChange={(e) => setHotelName(e.target.value)}
                     placeholder={t('form.hotelNamePlaceholder')}
                     required
-                    className="w-full px-6 py-4 rounded-lg border border-border bg-white text-foreground placeholder:text-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    className="w-full px-6 py-4 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   />
                 </div>
                 <div>
@@ -205,13 +247,13 @@ export default function WaitlistPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={t('form.emailPlaceholder')}
                     required
-                    className="w-full px-6 py-4 rounded-lg border border-border bg-white text-foreground placeholder:text-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    className="w-full px-6 py-4 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-white text-primary px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white/90 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
                 >
                   {isSubmitting ? (
                     <>
@@ -231,7 +273,7 @@ export default function WaitlistPage() {
               </form>
             </div>
 
-            <p className="mt-6 text-sm text-white/80 drop-shadow-md" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
+            <p className="mt-6 text-sm text-gray-600 text-center">
               {t('hero.cta')}
             </p>
           </motion.div>
@@ -491,13 +533,69 @@ export default function WaitlistPage() {
         </div>
       </section>
 
-      {/* Footer CTA */}
-      <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 bg-primary text-primary-foreground">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6">
-            {t('hero.cta')}
-          </h2>
-          <button
+      {/* Footer CTA - Light Theme */}
+      <section className="relative overflow-hidden py-16 sm:py-20 md:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white via-purple-50/30 to-blue-50/20">
+        {/* Subtle gradient background */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-purple-50/20 to-blue-50/30" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,0.08)_0%,transparent_50%)]" />
+        </div>
+        
+        <div className="relative z-10 max-w-4xl mx-auto text-center">
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4 }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 rounded-full mb-6 shadow-sm"
+          >
+            <Sparkles className="w-4 h-4 text-purple-600" />
+            <span className="text-sm font-semibold text-purple-700">
+              {locale === 'hu' ? 'Korai hozzáférés' : 'Früher Zugang'}
+            </span>
+          </motion.div>
+          
+          {/* Main Title */}
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-balance mb-4 sm:mb-6 text-gray-900 leading-tight"
+          >
+            {locale === 'hu' ? (
+              <>
+                Kezdje el az ingyenes auditat{' '}
+                <span className="text-blue-600">most!</span>
+              </>
+            ) : (
+              <>
+                Starten Sie das kostenlose Audit{' '}
+                <span className="text-blue-600">jetzt!</span>
+              </>
+            )}
+          </motion.h2>
+          
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-lg sm:text-xl text-gray-600 mb-8 max-w-2xl mx-auto"
+          >
+            {locale === 'hu' 
+              ? 'Fedezze fel, hogyan látja a mesterséges intelligencia a szállodáját, és mit tehet a jobb eredményekért.'
+              : 'Entdecken Sie, wie die künstliche Intelligenz Ihr Hotel sieht und was Sie für bessere Ergebnisse tun können.'}
+          </motion.p>
+          
+          {/* CTA Button */}
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
             onClick={(e) => {
               e.preventDefault();
               const heroSection = document.getElementById('hero-form');
@@ -508,43 +606,47 @@ export default function WaitlistPage() {
                 });
               }
             }}
-            className="inline-block mt-4 sm:mt-6 bg-white text-primary px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg hover:bg-white/90 transition-all transform hover:scale-105 shadow-lg cursor-pointer"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
           >
-            {t('form.submit')}
-          </button>
+            {locale === 'hu' ? 'AI-Audit indítása' : 'KI-Analyse starten'}
+            <ArrowRight className="w-5 h-5" />
+          </motion.button>
         </div>
-        {/* Footer links: Impressum/Datenschutz és nyelvválasztó */}
-        <div className="max-w-4xl mx-auto mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-white/20">
-          <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 text-xs sm:text-sm text-white/70">
-            {/* Impressum és Datenschutz - mindkét verzióban */}
-            <a href={`/${locale}/impressum`} className="hover:text-white transition-colors">
-              {t('footer.impressum')}
-            </a>
-            <a href={`/${locale}/datenschutz`} className="hover:text-white transition-colors">
-              {t('footer.datenschutz')}
-            </a>
-            <span className="text-white/30">|</span>
-            {/* Nyelvválasztó - mindig látható */}
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 text-xs sm:text-sm text-gray-600">
+            {/* Impressum és Datenschutz */}
+            <Link href={`/${locale}/impressum`} className="hover:text-gray-900 transition-colors">
+              {locale === 'hu' ? 'Impresszum' : 'Impressum'}
+            </Link>
+            <Link href={`/${locale}/datenschutz`} className="hover:text-gray-900 transition-colors">
+              {locale === 'hu' ? 'Adatvédelem' : 'Datenschutz'}
+            </Link>
+            <span className="text-gray-300">|</span>
+            {/* Nyelvválasztó */}
             <div className="flex items-center gap-1.5 sm:gap-2">
               <Link
                 href={pathname}
                 locale="hu"
                 className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded transition-all ${
                   locale === 'hu' 
-                    ? 'text-white font-semibold bg-white/20' 
-                    : 'hover:text-white hover:bg-white/10'
+                    ? 'text-purple-700 font-semibold bg-purple-100' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
                 HU
               </Link>
-              <span className="text-white/30">/</span>
+              <span className="text-gray-300">/</span>
               <Link
                 href={pathname}
                 locale="de"
                 className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded transition-all ${
                   locale === 'de' 
-                    ? 'text-white font-semibold bg-white/20' 
-                    : 'hover:text-white hover:bg-white/10'
+                    ? 'text-purple-700 font-semibold bg-purple-100' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
                 DE
@@ -552,11 +654,13 @@ export default function WaitlistPage() {
             </div>
           </div>
           {/* Copyright */}
-          <div className="mt-6 sm:mt-8 text-center text-[10px] sm:text-xs text-white/50">
-            {t('footer.copyright')}
+          <div className="mt-6 sm:mt-8 text-center text-[10px] sm:text-xs text-gray-500">
+            {locale === 'hu' 
+              ? '© 2025 HotelTrust · Minden jog fenntartva.'
+              : '© 2025 HotelTrust · Alle Rechte vorbehalten.'}
           </div>
         </div>
-      </section>
+      </footer>
 
       {/* Waitlist Popup */}
       <WaitlistPopup

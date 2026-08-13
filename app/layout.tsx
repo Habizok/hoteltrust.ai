@@ -9,8 +9,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "HotelTrust.ai - Wird Ihr Hotel von der KI empfohlen?",
+  title: "Trusthotel - Wird Ihr Hotel von der KI empfohlen?",
   description: "AI-Láthatósági és Reputációs Optimalizálás hoteleknek",
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
 };
 
 export default function RootLayout({

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { saveAnalyticsEntry, updateAnalyticsEntry, getAnalyticsEntries } from '@/lib/analytics';
+import { saveAnalyticsEntry, updateAnalyticsEntry, getAnalyticsEntries } from '@/lib/kv';
 import { detectDevice } from '@/lib/deviceDetector';
 
 // POST - új analytics entry létrehozása vagy frissítése
@@ -16,7 +16,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Ellenőrizzük, hogy van-e már ilyen session
-    const existing = getAnalyticsEntries().find(e => e.sessionId === sessionId);
+    const entries = await getAnalyticsEntries();
+    const existing = entries.find(e => e.sessionId === sessionId);
     
     if (existing) {
       // Detect device info from userAgent if not provided
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
           : { device: 'Ismeretlen', browser: 'Ismeretlen', os: 'Ismeretlen' };
       
       // Új entry létrehozása
-      const entry = saveAnalyticsEntry({
+      const entry = await saveAnalyticsEntry({
         sessionId,
         country: country || 'Ismeretlen',
         countryCode: countryCode || 'XX',
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // TODO: Admin authentication check
-    const entries = getAnalyticsEntries();
+    const entries = await getAnalyticsEntries();
     
     return NextResponse.json(
       { success: true, data: entries },

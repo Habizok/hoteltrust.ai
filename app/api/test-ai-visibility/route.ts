@@ -123,32 +123,153 @@ export async function POST(request: NextRequest) {
             }
           }
           
-          const geminiResponse = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                contents: [
-                  {
-                    parts: [
+          // Try gemini-2.5-flash with v1beta API first, fallback to gemini-2.5-flash-lite, then gemini-1.5-pro
+          let geminiResponse: Response;
+          try {
+            geminiResponse = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-goog-api-key': geminiApiKey,
+                },
+                body: JSON.stringify({
+                  contents: [
+                    {
+                      parts: [
+                        {
+                          text: promptText,
+                        },
+                      ],
+                    },
+                  ],
+                  generationConfig: {
+                    temperature: 0.3, // Lower temperature for more accuracy, less hallucination
+                    maxOutputTokens: 500,
+                  },
+                }),
+              }
+            );
+          } catch (error) {
+            // If 404 or other error, try fallback to gemini-pro
+            console.warn(`[GEMINI] Primary model failed, trying gemini-pro fallback:`, error);
+            try {
+              geminiResponse = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'x-goog-api-key': geminiApiKey,
+                  },
+                  body: JSON.stringify({
+                    contents: [
                       {
-                        text: promptText,
+                        parts: [
+                          {
+                            text: promptText,
+                          },
+                        ],
                       },
                     ],
-                  },
-                ],
-                generationConfig: {
-                  temperature: 0.3, // Lower temperature for more accuracy, less hallucination
-                  maxOutputTokens: 500,
-                },
-              }),
+                    generationConfig: {
+                      temperature: 0.3,
+                      maxOutputTokens: 500,
+                    },
+                  }),
+                }
+              );
+              console.log(`[GEMINI] Fallback to gemini-pro successful`);
+            } catch (fallbackError) {
+              console.error(`[GEMINI] Both models failed:`, fallbackError);
+              // Continue to next question instead of breaking
+              continue;
             }
-          );
+          }
 
-          if (geminiResponse.ok) {
+          // If 404, try fallback to gemini-pro
+          if (geminiResponse && !geminiResponse.ok && geminiResponse.status === 404) {
+            console.warn(`[GEMINI] Primary model failed with 404, trying gemini-pro fallback`);
+            try {
+              geminiResponse = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'x-goog-api-key': geminiApiKey,
+                  },
+                  body: JSON.stringify({
+                    contents: [
+                      {
+                        parts: [
+                          {
+                            text: promptText,
+                          },
+                        ],
+                      },
+                    ],
+                    generationConfig: {
+                      temperature: 0.3,
+                      maxOutputTokens: 500,
+                    },
+                  }),
+                }
+              );
+              console.log(`[GEMINI] Fallback to gemini-1.5-flash successful, status: ${geminiResponse.status}, ok: ${geminiResponse.ok}`);
+              if (!geminiResponse.ok && geminiResponse.status === 404) {
+                // Try final fallback to gemini-pro
+                console.warn(`[GEMINI] gemini-1.5-flash also failed, trying gemini-pro as final fallback`);
+                try {
+                  geminiResponse = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent`,
+                    {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': geminiApiKey,
+                      },
+                      body: JSON.stringify({
+                        contents: [
+                          {
+                            parts: [
+                              {
+                                text: promptText,
+                              },
+                            ],
+                          },
+                        ],
+                        generationConfig: {
+                          temperature: 0.3,
+                          maxOutputTokens: 500,
+                        },
+                      }),
+                    }
+                  );
+                  console.log(`[GEMINI] Final fallback to gemini-pro successful, status: ${geminiResponse.status}, ok: ${geminiResponse.ok}`);
+                  if (!geminiResponse.ok) {
+                    const finalErrorText = await geminiResponse.text();
+                    console.error(`[GEMINI] All models failed (${geminiResponse.status}):`, finalErrorText);
+                    continue;
+                  }
+                } catch (finalFallbackError) {
+                  console.error(`[GEMINI] All fallback models failed:`, finalFallbackError);
+                  continue;
+                }
+              } else if (!geminiResponse.ok) {
+                const fallbackErrorText = await geminiResponse.text();
+                console.error(`[GEMINI] Fallback failed (${geminiResponse.status}):`, fallbackErrorText);
+                continue;
+              }
+            } catch (fallbackError) {
+              console.error(`[GEMINI] Fallback failed:`, fallbackError);
+              // Continue to next question instead of breaking
+              continue;
+            }
+          }
+          
+          if (geminiResponse && geminiResponse.ok) {
             const geminiData = await geminiResponse.json();
             const responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
             

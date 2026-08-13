@@ -11,13 +11,32 @@ interface WaitlistPopupProps {
   waitlistCount?: number;
 }
 
-export default function WaitlistPopup({ isOpen, onClose, waitlistCount }: WaitlistPopupProps) {
+export default function WaitlistPopup({ isOpen, onClose, waitlistCount: propWaitlistCount }: WaitlistPopupProps) {
   const locale = useLocale();
   const [mounted, setMounted] = useState(false);
+  const [waitlistCount, setWaitlistCount] = useState<number | undefined>(propWaitlistCount);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Fetch waitlist count if not provided
+  useEffect(() => {
+    if (isOpen && !waitlistCount) {
+      const fetchCount = async () => {
+        try {
+          const response = await fetch('/api/waitlist/count');
+          if (response.ok) {
+            const data = await response.json();
+            setWaitlistCount(data.count);
+          }
+        } catch (error) {
+          console.error('Error fetching waitlist count:', error);
+        }
+      };
+      fetchCount();
+    }
+  }, [isOpen, waitlistCount]);
 
   useEffect(() => {
     if (isOpen && mounted) {
@@ -80,7 +99,7 @@ export default function WaitlistPopup({ isOpen, onClose, waitlistCount }: Waitli
             {locale === 'hu' ? 'Már feliratkozott a világon:' : 'Bereits angemeldet weltweit:'}
           </p>
           <p className="text-center text-3xl font-bold text-primary">
-            163 {locale === 'hu' ? 'hotel' : 'Hotels'}
+            {waitlistCount !== undefined ? waitlistCount : '...'} {locale === 'hu' ? 'hotel' : 'Hotels'}
           </p>
         </div>
 
