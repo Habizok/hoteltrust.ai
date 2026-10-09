@@ -1,88 +1,44 @@
-import { ImageResponse } from 'next/og';
+import { ImageResponse } from "next/og";
 
+export const alt = "HotelTrust: Personalvermittlung für Hotellerie und Gastronomie in Österreich";
 export const size = { width: 1200, height: 630 };
-export const contentType = 'image/png';
+export const contentType = "image/png";
 
-export default async function Image() {
+export default function OgImage() {
   return new ImageResponse(
     (
       <div
         style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#FAFAFA',
-          backgroundImage:
-            'radial-gradient(circle at 15% 15%, rgba(26,115,232,0.14), transparent 45%), radial-gradient(circle at 85% 85%, rgba(212,175,55,0.16), transparent 45%)',
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          background: "#EAF3E0",
+          padding: 72,
+          color: "#12301F",
+          fontFamily: "sans-serif",
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 140,
-            height: 140,
-            borderRadius: 32,
-            backgroundImage: 'linear-gradient(135deg, #1A73E8, #0d47a1)',
-            boxShadow: '0 20px 40px rgba(26,115,232,0.35)',
-            marginBottom: 40,
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              width: 64,
-              height: 64,
-              borderRadius: 12,
-              backgroundColor: '#FAFAFA',
-            }}
-          />
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            fontSize: 76,
-            fontWeight: 700,
-            color: '#101828',
-            letterSpacing: '-2px',
-          }}
-        >
-          Trusthotel
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            marginTop: 20,
-            fontSize: 32,
-            color: '#475467',
-            textAlign: 'center',
-            maxWidth: 860,
-          }}
-        >
-          Wird Ihr Hotel von der KI empfohlen?
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            marginTop: 48,
-            padding: '10px 28px',
-            borderRadius: 999,
-            backgroundColor: 'rgba(212,175,55,0.16)',
-            border: '2px solid #D4AF37',
-          }}
-        >
-          <div style={{ display: 'flex', fontSize: 24, fontWeight: 600, color: '#8a6d1f' }}>
-            AI-Sichtbarkeit &amp; Reputation für Hotels
+        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          <div style={{ width: 64, height: 64, borderRadius: 18, background: "#1F7A45", display: "flex", alignItems: "center", justifyContent: "center", color: "#F6D96B", fontSize: 40, fontWeight: 700 }}>
+            H
+          </div>
+          <div style={{ fontSize: 42, fontWeight: 700, display: "flex" }}>
+            Hotel<span style={{ color: "#1F7A45" }}>Trust</span>
           </div>
         </div>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ fontSize: 78, fontWeight: 700, lineHeight: 1.05, display: "flex", flexWrap: "wrap" }}>
+            Saisonkräfte, auf die Sie sich verlassen können.
+          </div>
+          <div style={{ fontSize: 32, marginTop: 28, color: "#3A5444", display: "flex" }}>
+            Personalvermittlung für Hotellerie und Gastronomie in Österreich
+          </div>
+        </div>
+        <div style={{ width: 220, height: 14, background: "#F6D96B", borderRadius: 7, display: "flex" }} />
       </div>
     ),
-    { ...size }
+    size,
   );
 }

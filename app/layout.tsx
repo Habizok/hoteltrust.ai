@@ -1,47 +1,47 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Outfit, Figtree } from "next/font/google";
 import "./globals.css";
-import { SITE_URL, SITE_NAME } from "@/lib/seo";
+import { de } from "@/lib/content/de";
+import { SITE } from "@/lib/site";
+import { LangProvider } from "@/components/Lang";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: '--font-inter',
-  display: 'swap',
-});
+const display = Outfit({ subsets: ["latin", "latin-ext"], variable: "--font-display", display: "swap", weight: ["500", "600", "700"] });
+const sans = Figtree({ subsets: ["latin", "latin-ext"], variable: "--font-sans", display: "swap" });
 
-// Ez a globális, nyelv-független fallback - minden nyilvános oldal a saját
-// layout.tsx-ében (waitlist, free-audit, impressum, datenschutz, audit/[id])
-// felülírja ezt a tényleges, nyelv- és oldal-specifikus cím/leírás párral.
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: `${SITE_NAME} - Wird Ihr Hotel von der KI empfohlen?`,
-    template: `%s`,
-  },
-  description: "AI-Láthatósági és Reputációs Optimalizálás hoteleknek",
-  icons: {
-    icon: '/icon.svg',
-    shortcut: '/icon.svg',
-    apple: '/icon.svg',
-  },
+  metadataBase: new URL(SITE.url),
+  title: { default: de["meta.title"], template: "%s | HotelTrust" },
+  description: de["meta.desc"],
+  alternates: { canonical: "/" },
   openGraph: {
-    siteName: SITE_NAME,
-    type: 'website',
+    type: "website",
+    locale: "de_AT",
+    url: SITE.url,
+    siteName: SITE.name,
+    title: de["meta.title"],
+    description: de["meta.desc"],
   },
-  twitter: {
-    card: 'summary_large_image',
-  },
+  twitter: { card: "summary_large_image", title: de["meta.title"], description: de["meta.desc"] },
+  robots: { index: true, follow: true },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export const viewport: Viewport = {
+  themeColor: "#EAF3E0",
+  width: "device-width",
+  initialScale: 1,
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html className={inter.variable} suppressHydrationWarning>
+    <html lang="de-AT" className={`${display.variable} ${sans.variable}`}>
       <body>
-        {children}
+        <a
+          href="#inhalt"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-forest-600 focus:px-4 focus:py-3 focus:font-bold focus:text-white"
+        >
+          {de["skip"]}
+        </a>
+        <LangProvider>{children}</LangProvider>
       </body>
     </html>
   );
