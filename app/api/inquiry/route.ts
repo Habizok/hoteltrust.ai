@@ -42,7 +42,7 @@ async function notify(entry: StoredInquiry): Promise<boolean> {
     ["Létszám", String(entry.headcount)],
     ["Kezdés", huOf(entry.start)],
     ["Szállás", huOf(entry.accommodation)],
-    ["Nyelvtudás", huOf(entry.german)],
+    ["Nyelvtudás (több is lehet)", entry.languages.map(huOf).join(", ")],
     ["Párok jelentkezhetnek", huOf(entry.couples)],
     ["Üzenet (németül/ahogy beírta)", entry.message || "nincs"],
   ];

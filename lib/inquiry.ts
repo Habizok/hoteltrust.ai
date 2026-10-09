@@ -12,7 +12,7 @@ export type Inquiry = {
   headcount: number;
   start: string;
   accommodation: string;
-  german: string;
+  languages: string[];
   message: string;
 };
 
@@ -37,7 +37,9 @@ export function parseInquiry(raw: unknown): { ok: true; data: Inquiry } | { ok: 
   const couples = clean(r.couples, 60);
   const start = clean(r.start, 40);
   const accommodation = clean(r.accommodation, 40);
-  const german = clean(r.german, 60);
+  const languages = Array.isArray(r.languages)
+    ? [...new Set(r.languages.map((l) => clean(l, 60)).filter((l) => GERMAN_LEVELS.includes(l)))]
+    : [];
   const message = clean(r.message, 2000);
   const headcount = Math.round(Number(r.headcount));
   const positions = Array.isArray(r.positions)
@@ -56,11 +58,11 @@ export function parseInquiry(raw: unknown): { ok: true; data: Inquiry } | { ok: 
   if (!ACCOMMODATION.includes(accommodation))
     return { ok: false, error: "Bitte geben Sie an, ob eine Unterkunft vorhanden ist." };
   if (!COUPLES.includes(couples)) return { ok: false, error: "Bitte geben Sie an, ob sich Paare bewerben können." };
-  if (!GERMAN_LEVELS.includes(german)) return { ok: false, error: "Bitte geben Sie an, welche Sprachkenntnisse nötig sind." };
+  if (languages.length === 0) return { ok: false, error: "Bitte geben Sie an, welche Sprachkenntnisse nötig sind." };
   if (r.consent !== true) return { ok: false, error: "Bitte stimmen Sie der Verarbeitung Ihrer Angaben zu." };
 
   return {
     ok: true,
-    data: { business, contact, email, phone, state, town, couples, positions, headcount, start, accommodation, german, message },
+    data: { business, contact, email, phone, state, town, couples, positions, headcount, start, accommodation, languages, message },
   };
 }

@@ -51,12 +51,20 @@ export function InquiryForm() {
   const [state, setState] = useState<State>("idle");
   const [error, setError] = useState("");
   const [positions, setPositions] = useState<string[]>([]);
+  const [languages, setLanguages] = useState<string[]>([]);
   const opened = useRef(Date.now());
   const okRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     if (state === "ok") okRef.current?.focus();
   }, [state]);
+
+  // "Kaum oder keine Sprachkenntnisse" schließt die anderen Antworten aus und umgekehrt.
+  const NONE = de["opt.ger.5"];
+  const toggleLang = (v: string) =>
+    setLanguages((cur) =>
+      cur.includes(v) ? cur.filter((x) => x !== v) : v === NONE ? [v] : [...cur.filter((x) => x !== NONE), v],
+    );
 
   const toggle = (v: string) => setPositions((p) => (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]));
 
@@ -77,7 +85,7 @@ export function InquiryForm() {
       headcount: Number(f.get("headcount")),
       start: f.get("start"),
       accommodation: f.get("accommodation"),
-      german: f.get("german"),
+      languages,
       message: f.get("message"),
       consent: f.get("consent") === "on",
       website: f.get("website"),
@@ -221,7 +229,29 @@ export function InquiryForm() {
         </select>
       </div>
 
-      <RadioChips legend="form.ger" name="german" keys={GER_KEYS} />
+      <fieldset className="mt-6">
+        <legend className={label}>
+          <T k="form.ger" />
+        </legend>
+        <p className="mb-2.5 text-sm text-ink-mute">{t("form.ger.hint")}</p>
+        <div className="flex flex-wrap gap-2.5">
+          {GER_KEYS.map((k) => {
+            const v = de[k];
+            const on = languages.includes(v);
+            return (
+              <label
+                key={k}
+                className={`inline-flex min-h-[2.75rem] cursor-pointer items-center rounded-full border-2 px-4 text-sm font-semibold transition focus-within:ring-4 focus-within:ring-forest-600/20 ${
+                  on ? "border-forest-600 bg-forest-600 text-white" : "border-meadow-300 bg-white text-ink hover:border-forest-600"
+                }`}
+              >
+                <input type="checkbox" className="sr-only" checked={on} onChange={() => toggleLang(v)} />
+                {t(k)}
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
       <RadioChips legend="form.acc" name="accommodation" keys={ACC_KEYS} defaultIndex={2} />
       <RadioChips legend="form.couples" hint="form.couples.hint" name="couples" keys={COUPLE_KEYS} defaultIndex={2} />
 
