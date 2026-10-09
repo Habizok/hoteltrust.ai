@@ -6,7 +6,7 @@ export function FormSection() {
   return (
     <section id="anfrage" className="relative overflow-hidden bg-meadow-100 section">
       <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-sun-300/50 blur-3xl" aria-hidden="true" />
-      <div className="container-x relative grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+      <div className="container-x relative grid gap-10 lg:grid-cols-[0.65fr_1.35fr] lg:items-start">
         <div className="lg:sticky lg:top-24">
           <p className="eyebrow">
             <T k="form.eyebrow" />
