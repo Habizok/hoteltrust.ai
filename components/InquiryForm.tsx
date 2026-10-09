@@ -4,10 +4,47 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
 import { de } from "@/lib/content/de";
-import { ACC_KEYS, GER_KEYS, POSITION_KEYS, START_KEYS, STATES } from "@/lib/site";
+import { ACC_KEYS, COUPLE_KEYS, GER_KEYS, POSITION_KEYS, START_KEYS, STATES } from "@/lib/site";
+import type { Key } from "@/lib/content/de";
 import { useT, T } from "./Lang";
 
 type State = "idle" | "sending" | "ok";
+
+
+function RadioChips({
+  legend,
+  hint,
+  name,
+  keys,
+  defaultIndex,
+}: {
+  legend: Key;
+  hint?: Key;
+  name: string;
+  keys: readonly Key[];
+  defaultIndex?: number;
+}) {
+  const t = useT();
+  return (
+    <fieldset className="mt-6">
+      <legend className="mb-1.5 block text-sm font-bold text-ink">
+        <T k={legend} />
+      </legend>
+      {hint && <p className="mb-2.5 text-sm text-ink-mute">{t(hint)}</p>}
+      <div className="flex flex-wrap gap-2.5">
+        {keys.map((k, i) => (
+          <label
+            key={k}
+            className="inline-flex min-h-[2.75rem] cursor-pointer items-center gap-2 rounded-full border-2 border-meadow-300 bg-white px-4 text-sm font-semibold text-ink transition hover:border-forest-600 has-[:checked]:border-forest-600 has-[:checked]:bg-forest-600 has-[:checked]:text-white has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-forest-600/20"
+          >
+            <input type="radio" name={name} value={de[k]} required defaultChecked={i === defaultIndex} className="sr-only" />
+            {t(k)}
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
 
 export function InquiryForm() {
   const t = useT();
@@ -34,6 +71,8 @@ export function InquiryForm() {
       email: f.get("email"),
       phone: f.get("phone"),
       state: f.get("state"),
+      town: f.get("town"),
+      couples: f.get("couples"),
       positions,
       headcount: Number(f.get("headcount")),
       start: f.get("start"),
@@ -130,6 +169,12 @@ export function InquiryForm() {
           </select>
         </div>
         <div>
+          <label htmlFor="f-town" className={label}>
+            <T k="form.town" />
+          </label>
+          <input id="f-town" name="town" className="field" autoComplete="address-level2" required placeholder={t("form.town.ph")} />
+        </div>
+        <div>
           <label htmlFor="f-headcount" className={label}>
             <T k="form.headcount" />
           </label>
@@ -160,55 +205,25 @@ export function InquiryForm() {
         </div>
       </fieldset>
 
-      <div className="mt-6 grid gap-5 sm:grid-cols-2">
-        <div>
-          <label htmlFor="f-start" className={label}>
-            <T k="form.start" />
-          </label>
-          <select id="f-start" name="start" className="field" required defaultValue="">
-            <option value="" disabled>
-              {t("form.start.ph")}
+      <div className="mt-6">
+        <label htmlFor="f-start" className={label}>
+          <T k="form.start" />
+        </label>
+        <select id="f-start" name="start" className="field sm:max-w-xs" required defaultValue="">
+          <option value="" disabled>
+            {t("form.start.ph")}
+          </option>
+          {START_KEYS.map((k) => (
+            <option key={k} value={de[k]}>
+              {t(k)}
             </option>
-            {START_KEYS.map((k) => (
-              <option key={k} value={de[k]}>
-                {t(k)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="f-german" className={label}>
-            <T k="form.ger" />
-          </label>
-          <select id="f-german" name="german" className="field" required defaultValue="">
-            <option value="" disabled>
-              {t("form.ger.ph")}
-            </option>
-            {GER_KEYS.map((k) => (
-              <option key={k} value={de[k]}>
-                {t(k)}
-              </option>
-            ))}
-          </select>
-        </div>
+          ))}
+        </select>
       </div>
 
-      <fieldset className="mt-6">
-        <legend className={label}>
-          <T k="form.acc" />
-        </legend>
-        <div className="flex flex-wrap gap-2.5">
-          {ACC_KEYS.map((k, i) => (
-            <label
-              key={k}
-              className="inline-flex min-h-[2.75rem] cursor-pointer items-center gap-2 rounded-full border-2 border-meadow-300 bg-white px-4 text-sm font-semibold text-ink transition hover:border-forest-600 has-[:checked]:border-forest-600 has-[:checked]:bg-forest-600 has-[:checked]:text-white has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-forest-600/20"
-            >
-              <input type="radio" name="accommodation" value={de[k]} required defaultChecked={i === 2} className="sr-only" />
-              {t(k)}
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      <RadioChips legend="form.ger" name="german" keys={GER_KEYS} />
+      <RadioChips legend="form.acc" name="accommodation" keys={ACC_KEYS} defaultIndex={2} />
+      <RadioChips legend="form.couples" hint="form.couples.hint" name="couples" keys={COUPLE_KEYS} defaultIndex={2} />
 
       <div className="mt-6">
         <label htmlFor="f-msg" className={label}>

@@ -1,4 +1,4 @@
-import { ACCOMMODATION, GERMAN_LEVELS, POSITIONS, START_OPTIONS, STATES } from "./site";
+import { ACCOMMODATION, COUPLES, GERMAN_LEVELS, POSITIONS, START_OPTIONS, STATES } from "./site";
 
 export type Inquiry = {
   business: string;
@@ -6,6 +6,8 @@ export type Inquiry = {
   email: string;
   phone: string;
   state: string;
+  town: string;
+  couples: string;
   positions: string[];
   headcount: number;
   start: string;
@@ -31,6 +33,8 @@ export function parseInquiry(raw: unknown): { ok: true; data: Inquiry } | { ok: 
   const email = clean(r.email, 160).toLowerCase();
   const phone = clean(r.phone, 40);
   const state = clean(r.state, 40);
+  const town = clean(r.town, 80);
+  const couples = clean(r.couples, 60);
   const start = clean(r.start, 40);
   const accommodation = clean(r.accommodation, 40);
   const german = clean(r.german, 60);
@@ -43,6 +47,7 @@ export function parseInquiry(raw: unknown): { ok: true; data: Inquiry } | { ok: 
   if (!business) return { ok: false, error: "Bitte geben Sie den Namen Ihres Betriebs an." };
   if (!contact) return { ok: false, error: "Bitte nennen Sie eine Ansprechperson." };
   if (!EMAIL.test(email)) return { ok: false, error: "Bitte geben Sie eine gültige Mailadresse an." };
+  if (!town) return { ok: false, error: "Bitte geben Sie den Ort Ihres Betriebs an." };
   if (!STATES.includes(state)) return { ok: false, error: "Bitte wählen Sie das Bundesland." };
   if (positions.length === 0) return { ok: false, error: "Bitte wählen Sie mindestens eine Position." };
   if (!Number.isFinite(headcount) || headcount < 1 || headcount > 100)
@@ -50,11 +55,12 @@ export function parseInquiry(raw: unknown): { ok: true; data: Inquiry } | { ok: 
   if (!START_OPTIONS.includes(start)) return { ok: false, error: "Bitte wählen Sie den gewünschten Starttermin." };
   if (!ACCOMMODATION.includes(accommodation))
     return { ok: false, error: "Bitte geben Sie an, ob eine Unterkunft vorhanden ist." };
-  if (!GERMAN_LEVELS.includes(german)) return { ok: false, error: "Bitte wählen Sie das gewünschte Deutschniveau." };
+  if (!COUPLES.includes(couples)) return { ok: false, error: "Bitte geben Sie an, ob sich Paare bewerben können." };
+  if (!GERMAN_LEVELS.includes(german)) return { ok: false, error: "Bitte geben Sie an, welche Sprachkenntnisse nötig sind." };
   if (r.consent !== true) return { ok: false, error: "Bitte stimmen Sie der Verarbeitung Ihrer Angaben zu." };
 
   return {
     ok: true,
-    data: { business, contact, email, phone, state, positions, headcount, start, accommodation, german, message },
+    data: { business, contact, email, phone, state, town, couples, positions, headcount, start, accommodation, german, message },
   };
 }

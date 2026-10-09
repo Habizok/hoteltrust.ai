@@ -36,12 +36,14 @@ async function notify(entry: StoredInquiry): Promise<boolean> {
     ["Kapcsolattartó", entry.contact],
     ["E-mail", entry.email],
     ["Telefon", entry.phone || "nincs megadva"],
+    ["Település", entry.town],
     ["Tartomány", entry.state],
     ["Pozíciók", entry.positions.map(huOf).join(", ")],
     ["Létszám", String(entry.headcount)],
     ["Kezdés", huOf(entry.start)],
     ["Szállás", huOf(entry.accommodation)],
-    ["Némettudás", huOf(entry.german)],
+    ["Nyelvtudás", huOf(entry.german)],
+    ["Párok jelentkezhetnek", huOf(entry.couples)],
     ["Üzenet (németül/ahogy beírta)", entry.message || "nincs"],
   ];
 
@@ -50,7 +52,7 @@ async function notify(entry: StoredInquiry): Promise<boolean> {
     from: `"HotelTrust" <${user}>`,
     to,
     replyTo: entry.email,
-    subject: `Új munkaerőigény: ${entry.business} (${entry.state})`,
+    subject: `Új munkaerőigény: ${entry.business}, ${entry.town} (${entry.state})`,
     text: rows.map(([k, v]) => `${k}: ${v}`).join("\n") + `\n\nID: ${entry.id}`,
     html:
       `<h2 style="font-family:Arial,sans-serif;color:#12301f">Új munkaerőigény érkezett</h2>` +
